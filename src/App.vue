@@ -14,6 +14,8 @@
     <RouterLink to="/gesture-detection">姿态检测</RouterLink>
     <RouterLink to="/about">本机信息</RouterLink>
     <RouterLink to="/dev">开发者模式</RouterLink>
+    <a target="_blank" href="swagger.yaml">swagger</a>
+    <a target="_blank" href="https://petstore.swagger.io">swagger ui</a>
   </nav>
   <main>
     <RouterView />

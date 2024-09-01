@@ -1,0 +1,87 @@
+swagger: "2.0"
+
+info:
+  title: "魔杖后台 API"
+
+paths:
+  /wifi-info:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+  /bt-info:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+  /gamepad:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+  /ir-remote-control:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+  /music-from-net:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+  /music-to-bt:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+  /about:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+  /dev:
+    get:
+      responses:
+        "200":
+          description: A list of scanned wifis
+          schema:
+            $ref: "#/definitions/WiFi_List"
+
+definitions:
+  WiFi_List:
+    type: array
+    items:
+      title: WiFi_Item
+      type: object
+      properties:
+        SSID:
+          type: string
+          example: ChinaNet-2333
+        RSSI:
+          type: integer
+          example: -20
+        Authmode:
+          type: string
+          example: WIFI_AUTH_WPA2_WPA3_PSK
+        Channel:
+          type: integer
+          example: 11
