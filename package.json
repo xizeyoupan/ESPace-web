@@ -9,12 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.29",
+    "ky": "^1.7.4",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
     "vue-router": "4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
     "git-revision-vite-plugin": "^0.0.11",
+    "naive-ui": "^2.40.3",
     "vite": "^5.3.1"
   }
 }
