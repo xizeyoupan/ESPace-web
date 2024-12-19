@@ -10,7 +10,15 @@ paths:
         "200":
           description: A list of scanned wifis
           schema:
-            $ref: "#/definitions/WiFi_List"
+            type: object
+            properties:
+              new:
+                type: boolean
+                description: Indicates whether this is a new result
+              data:
+                $ref: "#/definitions/WiFi_List"
+
+
   /bt-info:
     get:
       responses:
@@ -62,9 +70,13 @@ paths:
     get:
       responses:
         "200":
-          description: A list of scanned wifis
+          description: device info
           schema:
-            $ref: "#/definitions/WiFi_List"
+            type: object
+            properties:
+              new:
+                type: boolean
+                description: 是否为新结果
 
 definitions:
   WiFi_List:
