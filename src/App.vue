@@ -1,53 +1,19 @@
 <script setup>
 import { ref, onMounted, } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useMessage, NModal, NSwitch, NInput, NFlex, NButton } from "naive-ui"
-import ky from 'ky'
-import { WAND_CONNECT_DEVICE_TIMEOUT_MS } from './config.js'
-
-const isOnline = ref(false)
-const host = ref("")
-const showModal = ref(false)
-const use_user_host = ref(false)
-const user_host = ref("")
+import { connect_device } from './util.js'
+import { useDeviceStore } from './stores/device.js'
 
 const message = useMessage()
-const not_connect_device_error = () => {
-  message.error("未成功连接设备，点击右上角的状态图标重试。")
-}
+const device = useDeviceStore()
 
-const connect_device = async () => {
-  const mdns_host = ky.get("http://wand-esp32/whoami", { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
-  const ipv4_host = ky.get("http://192.168.4.1/whoami", { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
-  const user_config_host = ky.get(user_host.value ? `http://${user_host.value}/whoami` : 'http://localhost', { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
-  try {
-    let resp = await Promise.any([mdns_host, ipv4_host, user_config_host])
-
-    host.value = resp.url.slice(0, -7)
-    resp = await resp.text()
-
-    if (resp === '0721esp32wand') {
-      isOnline.value = true
-      message.success("连接成功")
-    } else {
-      message.error("并非esp32")
-      throw new Error("Not wand")
-    }
-
-  } catch (error) {
-    isOnline.value = false
-    not_connect_device_error()
-    console.warn(error)
-  }
-}
+const { isOnline, host, use_user_host, user_host } = storeToRefs(device)
+const showModal = ref(false)
 
 const config_host = () => {
   showModal.value = true
 }
-
-onMounted(() => {
-  connect_device()
-})
-
 
 </script>
 
@@ -83,7 +49,7 @@ onMounted(() => {
           :placeholder="use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`" />
       </n-flex>
 
-      <n-button @click="connect_device">重新连接</n-button>
+      <n-button @click="connect_device(device, message)">重新连接</n-button>
 
     </n-flex>
 

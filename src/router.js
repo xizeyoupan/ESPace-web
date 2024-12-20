@@ -12,7 +12,7 @@ import WiFiInfoView from './components/WiFiInfoView.vue'
 
 
 const routes = [
-    { path: '/', component: AboutView },
+    { path: '/', redirect: '/about' },
     { path: '/about', component: AboutView },
     { path: '/ble-gamepad', component: BTGamePadView },
     { path: '/bt-info', component: BTInfoView },
