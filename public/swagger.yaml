@@ -18,7 +18,6 @@ paths:
               data:
                 $ref: "#/definitions/WiFi_List"
 
-
   /bt-info:
     get:
       responses:
@@ -58,7 +57,7 @@ paths:
           schema:
             $ref: "#/definitions/WiFi_List"
 
-  /about:
+  /info:
     get:
       responses:
         "200":

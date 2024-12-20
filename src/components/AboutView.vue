@@ -3,19 +3,31 @@ import { ref } from 'vue'
 
 const web_version = GIT_VERSION
 
-let result = await fetch("https://api.github.com/repos/xizeyoupan/magic-wand")
-result = await result.json()
-const repo_id = result.id
+let latest_tag_name = ''
+let sha = ''
+let latest_tree = ''
 
-result = await fetch("https://api.github.com/repos/xizeyoupan/magic-wand/releases/latest")
-result = await result.json()
-const latest_tag_name = result.tag_name
 
-result = await fetch(`https://api.github.com/repositories/${repo_id}/git/ref/tags/${latest_tag_name}`)
-result = await result.json()
-const sha = result.object.sha.slice(0, 7)
+const get_latest_version = async () => {
+  let result = await fetch("https://api.github.com/repos/xizeyoupan/magic-wand")
+  result = await result.json()
+  const repo_id = result.id
 
-const latest_tree = `https://github.com/xizeyoupan/magic-wand/tree/${sha}`
+  result = await fetch("https://api.github.com/repos/xizeyoupan/magic-wand/releases/latest")
+  result = await result.json()
+  latest_tag_name = result.tag_name
+
+  result = await fetch(`https://api.github.com/repositories/${repo_id}/git/ref/tags/${latest_tag_name}`)
+  result = await result.json()
+  sha = result.object.sha.slice(0, 7)
+
+  latest_tree = `https://github.com/xizeyoupan/magic-wand/tree/${sha}`
+}
+const load_data = async () => {
+
+}
+await get_latest_version()
+
 
 </script>
 
@@ -28,10 +40,11 @@ const latest_tree = `https://github.com/xizeyoupan/magic-wand/tree/${sha}`
       {{ `${latest_tag_name} ${sha}` }}
     </a>
   </p>
-  <p>最高水位：</p>
+  <p>编译时间：</p>
+  <p>IDF版本：</p>
   <p>
     web版本：
-    <a target="_blank" href="https://github.com/xizeyoupan/magic-wand-web">
+    <a target="_blank" :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`">
       {{ web_version }}
     </a>
   </p>

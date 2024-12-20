@@ -1,0 +1,1 @@
+export const WAND_CONNECT_DEVICE_TIMEOUT_MS = 4000
