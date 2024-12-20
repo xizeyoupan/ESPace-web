@@ -16,8 +16,8 @@ const not_connect_device_error = () => {
 }
 
 const connect_device = async () => {
-  const mdns_host = ky.get("http://wand-esp32/whoami", { timeout: 1000 })
-  const ipv4_host = ky.get("http://wand-esp32/whoami", { timeout: 1000 })
+  const mdns_host = ky.get("http://wand-esp32/whoami", { headers: {}, timeout: 3000 })
+  const ipv4_host = ky.get("http://192.168.4.1", { headers: {}, timeout: 3000 })
   Promise.any([mdns_host, ipv4_host])
     .then(
       (value) => {
