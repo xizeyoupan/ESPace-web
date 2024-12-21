@@ -1,6 +1,5 @@
 import { storeToRefs } from 'pinia'
-import ky from 'ky'
-import { WAND_CONNECT_DEVICE_TIMEOUT_MS } from './config.js'
+import { api } from './api.js'
 
 const get_host_from_fetch = async (device, resp_promise) => {
     const { isOnline, host } = storeToRefs(device)
@@ -20,9 +19,9 @@ const get_host_from_fetch = async (device, resp_promise) => {
 export const connect_device = async (device, message) => {
     const { isOnline, user_host } = storeToRefs(device)
 
-    const mdns_fetch = ky.get("http://wand-esp32/whoami", { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
-    const ipv4_fetch = ky.get("http://192.168.4.1/whoami", { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
-    const user_config_fetch = ky.get(user_host.value ? `http://${user_host.value}/whoami` : 'http://localhost', { headers: {}, timeout: WAND_CONNECT_DEVICE_TIMEOUT_MS, retry: { limit: 0 } })
+    const mdns_fetch = api.get("http://wand-esp32/whoami")
+    const ipv4_fetch = api.get("http://192.168.4.1/whoami")
+    const user_config_fetch = api.get(user_host.value ? `http://${user_host.value}/whoami` : 'http://localhost',)
     try {
         await Promise.any([
             get_host_from_fetch(device, mdns_fetch),

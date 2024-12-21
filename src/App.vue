@@ -56,20 +56,20 @@ const config_host = () => {
   </n-modal>
 
   <nav>
-    <RouterLink to="/wifi-info">WiFi信息</RouterLink>
-    <RouterLink to="/bt-info">蓝牙信息</RouterLink>
-    <RouterLink to="/ble-gamepad">蓝牙手柄</RouterLink>
-    <RouterLink to="/ir-control">红外遥控</RouterLink>
-    <RouterLink to="/music-from-net">网络音乐播放</RouterLink>
-    <RouterLink to="/music-to-bt">蓝牙音乐播放</RouterLink>
-    <RouterLink to="/gesture-detection">姿态检测</RouterLink>
-    <RouterLink to="/about">本机信息</RouterLink>
-    <RouterLink to="/dev">开发者模式</RouterLink>
+    <RouterLink class="nowrap" to="/wifi-info">WiFi信息</RouterLink>
+    <RouterLink class="nowrap" to="/bt-info">蓝牙信息</RouterLink>
+    <RouterLink class="nowrap" to="/ble-gamepad">蓝牙手柄</RouterLink>
+    <RouterLink class="nowrap" to="/ir-control">红外遥控</RouterLink>
+    <RouterLink class="nowrap" to="/music-from-net">网络音乐播放</RouterLink>
+    <RouterLink class="nowrap" to="/music-to-bt">蓝牙音乐播放</RouterLink>
+    <RouterLink class="nowrap" to="/gesture-detection">姿态检测</RouterLink>
+    <RouterLink class="nowrap" to="/about">本机信息</RouterLink>
+    <RouterLink class="nowrap" to="/dev">开发者模式</RouterLink>
     <a target="_blank" href="swagger.yaml">swagger</a>
     <a target="_blank" href="https://petstore.swagger.io">swagger ui</a>
   </nav>
 
-  <main>
+  <main class="scrollable-container">
     <RouterView />
   </main>
 
@@ -77,8 +77,16 @@ const config_host = () => {
 
 <style>
 body {
-  margin: 0;
   font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+.scrollable-container {
+  max-height: 75vh;
+  overflow-y: auto;
 }
 
 nav,
@@ -95,6 +103,10 @@ nav>a+a {
 h2 {
   border-bottom: 1px solid #ccc;
   margin: 0 0 20px;
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 
@@ -123,6 +135,8 @@ a:focus {
   align-items: center;
   padding-left: 10px;
   padding-right: 10px;
+  max-height: 17vh;
+  min-height: 7vh;
 }
 
 .status-container {
