@@ -41,7 +41,8 @@ const config_host = () => {
           <template #unchecked>
             未启用自定义
           </template>
-        </n-switch> </n-flex>
+        </n-switch>
+      </n-flex>
 
       <n-flex>
         <div>魔杖ip：</div>
