@@ -3,7 +3,7 @@
 import { ref, } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage } from "naive-ui"
-import { connect_device } from '../util.js'
+import { check_not_oline, sleep_ms } from '../util.js'
 import { useDeviceStore } from '../stores/device.js'
 import { api, github_api } from '../api.js'
 
@@ -44,34 +44,34 @@ const get_latest_version = async () => {
 }
 
 const load_data = async () => {
-  if (!isOnline.value) {
-    await connect_device(device, message)
-  }
-  if (isOnline.value) {
-    let resp = await api.get(host.value + '/info')
-    resp = await resp.json()
+  if (check_not_oline(device, message)) return
 
-    chip_version.value = resp.chip_version
-    compile_time.value = resp.compile_time
-    cpu_freq.value = resp.cpu_freq
-    firmware_version.value = resp.firmware_version
-    git_commit_id.value = resp.git_commit_id
-    idf_version.value = resp.idf_version
-    package_version.value = resp.package_version
-  }
+  let resp = await api.get(host.value + '/info')
+  resp = await resp.json()
+
+  chip_version.value = resp.chip_version
+  compile_time.value = resp.compile_time
+  cpu_freq.value = resp.cpu_freq
+  firmware_version.value = resp.firmware_version
+  git_commit_id.value = resp.git_commit_id
+  idf_version.value = resp.idf_version
+  package_version.value = resp.package_version
 }
 
+
+let max_retry = 1
 do {
   try {
     if (isOnline.value && host.value && sha.value && compile_time.value) break
-
     message.loading('正在读取')
     const tasks = [get_latest_version(), load_data()]
     await Promise.allSettled(tasks)
+    await sleep_ms(1000)
+
   } catch (error) {
     console.error(error)
   }
-} while (0)
+} while (--max_retry)
 
 
 </script>
@@ -79,30 +79,43 @@ do {
 <template>
   <h2>关于</h2>
   <p>prefixURL：{{ host }}</p>
-  <p>固件版本：{{ firmware_version }}
-    <a target="_blank" :href="firmware_tree">
+  <p>
+    固件版本：{{ firmware_version }}
+    <a
+      target="_blank"
+      :href="firmware_tree"
+    >
       {{ git_commit_id }}
     </a>
   </p>
   <p>
     最新版本：
-    <a target="_blank" :href="latest_tree">
+    <a
+      target="_blank"
+      :href="latest_tree"
+    >
       {{ `${latest_tag_name} ${sha}` }}
     </a>
   </p>
   <p>编译时间：{{ compile_time }}</p>
   <p>IDF版本： {{ idf_version }}</p>
   <p>芯片封装： {{ package_version_str }}</p>
-  <p>芯片版本：
-    <a target="_blank"
-      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${chip_version_str.slice(1).replace('.', '-')}.html`">
+  <p>
+    芯片版本：
+    <a
+      target="_blank"
+      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${chip_version_str.slice(1).replace('.', '-')}.html`"
+    >
       {{ chip_version_str }}
     </a>
   </p>
   <p>CPU频率： {{ cpu_freq_str }}</p>
   <p>
     web版本：
-    <a target="_blank" :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`">
+    <a
+      target="_blank"
+      :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`"
+    >
       {{ web_version }}
     </a>
   </p>

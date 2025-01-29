@@ -12,21 +12,21 @@ import WiFiInfoView from './components/WiFiInfoView.vue'
 
 
 const routes = [
-    { path: '/', redirect: '/about' },
-    { path: '/about', component: AboutView },
-    { path: '/ble-gamepad', component: BTGamePadView },
-    { path: '/bt-info', component: BTInfoView },
-    { path: '/dev', component: DevModeView },
-    { path: '/ir-control', component: IRRemoteControlView },
-    { path: '/music-from-net', component: MusicFromNetView },
-    { path: '/music-to-bt', component: MusicToBTView },
-    { path: '/gesture-detection', component: GestureDetectView },
-    { path: '/wifi-info', component: WiFiInfoView },
+  { path: '/', redirect: '/about' },
+  { path: '/about', component: AboutView },
+  { path: '/ble-gamepad', component: BTGamePadView },
+  { path: '/bt-info', component: BTInfoView },
+  { path: '/dev', component: DevModeView },
+  { path: '/ir-control', component: IRRemoteControlView },
+  { path: '/music-from-net', component: MusicFromNetView },
+  { path: '/music-to-bt', component: MusicToBTView },
+  { path: '/gesture-detection', component: GestureDetectView },
+  { path: '/wifi-info', component: WiFiInfoView },
 ]
 
 const router = createRouter({
-    history: createWebHashHistory(),
-    routes,
+  history: createWebHashHistory(),
+  routes,
 })
 
 export default router
