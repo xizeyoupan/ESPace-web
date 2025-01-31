@@ -157,6 +157,10 @@ if (!isOnline.value) {
 </template>
 
 <style>
+* {
+  vertical-align: middle;
+}
+
 body {
   font-size: 1rem;
   display: flex;

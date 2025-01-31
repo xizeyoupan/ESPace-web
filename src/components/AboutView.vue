@@ -19,6 +19,8 @@ const {
 let latest_tree = ''
 
 const get_latest_version = async () => {
+  sha.value = "sha"
+
   if (sha.value) return
 
   try {
@@ -59,19 +61,27 @@ const load_data = async () => {
 }
 
 
-let max_retry = 1
-do {
-  try {
-    if (isOnline.value && host.value && sha.value && compile_time.value) break
-    message.loading('正在读取')
-    const tasks = [get_latest_version(), load_data()]
-    await Promise.allSettled(tasks)
-    await sleep_ms(1000)
 
-  } catch (error) {
-    console.error(error)
-  }
-} while (--max_retry)
+await Promise.race(
+  [
+    sleep_ms(5000),
+    (async () => {
+      while (!isOnline.value) {
+        await sleep_ms(10)
+      }
+    })()
+  ]
+)
+
+try {
+  message.loading('正在读取')
+  const tasks = [get_latest_version(), load_data()]
+  await Promise.allSettled(tasks)
+
+} catch (error) {
+  console.error(error)
+}
+
 
 
 </script>
@@ -80,7 +90,9 @@ do {
   <h2>关于</h2>
   <p>prefixURL：{{ host }}</p>
   <p>
-    固件版本：{{ firmware_version }}
+    <span>
+      固件版本：{{ firmware_version }}&nbsp;
+    </span>
     <a
       target="_blank"
       :href="firmware_tree"
@@ -89,13 +101,18 @@ do {
     </a>
   </p>
   <p>
-    最新版本：
-    <a
+    <span>
+      最新版本：
+    </span>
+    <a href="https://github.com/xizeyoupan/magic-wand">
+      <img src="https://img.shields.io/badge/github-gray">
+    </a>
+    <!-- <a
       target="_blank"
       :href="latest_tree"
     >
       {{ `${latest_tag_name} ${sha}` }}
-    </a>
+    </a> -->
   </p>
   <p>编译时间：{{ compile_time }}</p>
   <p>IDF版本： {{ idf_version }}</p>

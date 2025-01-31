@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useDeviceStore } from '../stores/device.js'
 import { api } from '../api.js'
 import { check_not_oline } from '../util.js'
+import { get, set } from 'idb-keyval'
 
 import { NList, NListItem, NButton, NFlex, NPopover, NModal, NInput, NDivider } from "naive-ui"
 
@@ -79,14 +80,12 @@ const connect_ap = async () => {
   })
 
   try {
-    let resp = await api.post(host.value + '/connect_ap', { body: data })
-    resp = await resp.text()
-    // TODO
+    let resp = await api.post(host.value + '/connect_ap', { timeout: 5000, body: data })
+    message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
   } catch (error) {
-
+    console.error(error)
+    message.error(error)
   }
-
-  console.log(data)
 }
 
 const get_wifi_info = async () => {
@@ -105,12 +104,14 @@ const get_wifi_info = async () => {
   }
 }
 
+manuf.value.data = await get('manuf')
 
-if (!manuf.data) {
+if (!manuf.value.data) {
   api.get('https://www.wireshark.org/assets/json/manuf.json', { timeout: 20000 })
     .then(res => res.json())
     .then(res => {
       manuf.value.data = res.data
+      set('manuf', res.data)
     })
     .catch(err => {
       console.error(err)
@@ -118,7 +119,7 @@ if (!manuf.data) {
     })
 }
 
-get_wifi_info()
+await get_wifi_info()
 
 </script>
 
@@ -185,13 +186,16 @@ get_wifi_info()
         />
       </n-flex>
 
-      <n-popover trigger="hover">
+      <n-popover
+        trigger="hover"
+        placement="bottom"
+      >
         <template #trigger>
           <n-button @click="connect_ap">
             连接
           </n-button>
         </template>
-        呃呃呃
+        指示灯颜色：绿色：连接成功；洋红色：正在连接；青色：连接失败，退回AP模式
       </n-popover>
     </n-flex>
   </n-modal>
