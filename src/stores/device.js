@@ -30,6 +30,7 @@ export const useDeviceStore = defineStore('device', () => {
   const chip_version = ref(0)
   const cpu_freq = ref(0)
   const manuf = reactive({})
+  const imu_data = reactive({})
   const wsmgr = reactive({ instance: null })
 
   const package_version_str = computed(() => chipVersions[package_version.value])
@@ -40,6 +41,6 @@ export const useDeviceStore = defineStore('device', () => {
   return {
     isOnline, host, use_user_host, user_host, repo_id, latest_tag_name, sha, git_commit_id, sta_ssid, sta_pass,
     compile_time, firmware_version, idf_version, package_version, chip_version, cpu_freq, manuf,
-    package_version_str, chip_version_str, cpu_freq_str, firmware_tree, wsmgr
+    package_version_str, chip_version_str, cpu_freq_str, firmware_tree, wsmgr, imu_data
   }
 })

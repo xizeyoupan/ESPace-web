@@ -60,8 +60,6 @@ const load_data = async () => {
   package_version.value = resp.package_version
 }
 
-
-
 await Promise.race(
   [
     sleep_ms(5000),
@@ -81,8 +79,6 @@ try {
 } catch (error) {
   console.error(error)
 }
-
-
 
 </script>
 
@@ -104,7 +100,10 @@ try {
     <span>
       最新版本：
     </span>
-    <a href="https://github.com/xizeyoupan/magic-wand">
+    <a
+      target="_blank"
+      href="https://github.com/xizeyoupan/magic-wand"
+    >
       <img src="https://img.shields.io/badge/github-gray">
     </a>
     <!-- <a

@@ -1,11 +1,12 @@
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 import { api } from './api.js'
-import { resolveComponent } from 'vue'
 
 class WebSocketManager {
   constructor(url, device) {
     this.url = url
     this.isOnline = storeToRefs(device).isOnline
+    this.imu_data = storeToRefs(device).imu_data
     this.ws = null
     this.heartCheck = {
       timeout: 10000, // 10秒
@@ -31,7 +32,9 @@ class WebSocketManager {
   }
 
   connect() {
+    this.del()
     this.ws = new WebSocket(this.url)
+    this.ws.binaryType = "arraybuffer"
 
     this.ws.onopen = () => {
       console.log("WebSocket 连接成功")
@@ -43,6 +46,12 @@ class WebSocketManager {
       this.isOnline.value = true
       console.log("收到消息:", event.data)
       this.heartCheck.reset()
+
+      let view = new DataView(event.data)
+      let roll = ref(view.getFloat32(1, true))
+      let pitch = ref(view.getFloat32(5, true))
+      this.imu_data.value.roll = roll
+      this.imu_data.value.pitch = pitch
     }
 
     this.ws.onclose = () => {

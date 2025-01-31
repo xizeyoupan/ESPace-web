@@ -141,14 +141,6 @@ if (!isOnline.value) {
     >
       开发者模式
     </RouterLink>
-    <a
-      target="_blank"
-      href="swagger.yaml"
-    >swagger</a>
-    <a
-      target="_blank"
-      href="https://petstore.swagger.io"
-    >swagger ui</a>
   </nav>
 
   <main class="scrollable-container">
