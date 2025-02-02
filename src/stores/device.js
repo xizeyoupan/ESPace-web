@@ -30,6 +30,7 @@ export const useDeviceStore = defineStore('device', () => {
   })
 
   const device_info = reactive({
+    dev_mode: ref(false),
     compile_time: ref(""),
     firmware_version: ref(""),
     idf_version: ref(""),

@@ -4,11 +4,12 @@ import { storeToRefs } from 'pinia'
 import { useMessage, NModal, NSwitch, NInput, NFlex, NButton } from "naive-ui"
 import { connect_device } from './util.js'
 import { useDeviceStore } from './stores/device.js'
+import { get } from 'idb-keyval'
 
 const message = useMessage()
 const device = useDeviceStore()
 
-const { wifi_info } = storeToRefs(device)
+const { wifi_info, device_info } = storeToRefs(device)
 const showModal = ref(false)
 
 const config_host = () => {
@@ -18,6 +19,8 @@ const config_host = () => {
 if (!wifi_info.value.isOnline) {
   await connect_device(device, message)
 }
+
+device_info.value.dev_mode = await get("dev_mode")
 
 </script>
 
@@ -136,6 +139,7 @@ if (!wifi_info.value.isOnline) {
       本机信息
     </RouterLink>
     <RouterLink
+      v-if="device_info.dev_mode"
       class="nowrap"
       to="/dev"
     >

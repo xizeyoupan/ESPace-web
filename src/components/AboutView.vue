@@ -6,6 +6,7 @@ import { useMessage } from "naive-ui"
 import { check_not_oline, sleep_ms } from '../util.js'
 import { useDeviceStore } from '../stores/device.js'
 import { api, github_api } from '../api.js'
+import { get, set } from 'idb-keyval'
 
 const web_version = GIT_VERSION
 const message = useMessage()
@@ -38,6 +39,31 @@ const load_data = async () => {
   device_info.value.package_version = resp.package_version
 }
 
+let easter_egg_cnt = 8
+const trigger_egg = async () => {
+  if (easter_egg_cnt == 5) {
+    if (device_info.value.dev_mode) {
+      message.info('已处于开发者模式')
+      return
+    }
+    message.info('5步后进入开发者模式')
+  } else if (easter_egg_cnt == 4) {
+    message.info('4步后进入开发者模式')
+  } else if (easter_egg_cnt == 3) {
+    message.info('3步后进入开发者模式')
+  } else if (easter_egg_cnt == 2) {
+    message.info('2步后进入开发者模式')
+  } else if (easter_egg_cnt == 1) {
+    message.info('1步后进入开发者模式')
+  } else if (easter_egg_cnt == 0) {
+    message.info('已处于开发者模式')
+    await set("dev_mode", true)
+    device_info.value.dev_mode = true
+  }
+
+  easter_egg_cnt--
+}
+
 await Promise.race(
   [
     sleep_ms(1500),
@@ -50,7 +76,7 @@ await Promise.race(
 )
 
 try {
-  message.loading('正在读取')
+  message.loading('正在读取', { duration: 1000 })
   const tasks = [load_data()]
   await Promise.allSettled(tasks)
 
@@ -64,7 +90,10 @@ try {
   <h2>关于</h2>
   <p>prefixURL：{{ wifi_info.host }}</p>
   <p>
-    <span>
+    <span
+      style="user-select: none;"
+      @click="trigger_egg"
+    >
       固件版本：{{ device_info.firmware_version }}&nbsp;
     </span>
     <a
