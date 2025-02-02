@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMessage, NModal, NSwitch, NInput, NFlex, NButton } from "naive-ui"
+import { useMessage, NModal, NSwitch, NInput, NFlex, NButton, NPopover } from "naive-ui"
 import { connect_device } from './util.js'
 import { useDeviceStore } from './stores/device.js'
 import { get } from 'idb-keyval'
@@ -9,7 +9,7 @@ import { get } from 'idb-keyval'
 const message = useMessage()
 const device = useDeviceStore()
 
-const { wifi_info, device_info } = storeToRefs(device)
+const { wifi_info, device_info, computed_data } = storeToRefs(device)
 const showModal = ref(false)
 
 const config_host = () => {
@@ -31,6 +31,17 @@ device_info.value.dev_mode = await get("dev_mode")
       class="status-container"
       @click="config_host"
     >
+      <n-popover
+        v-if="wifi_info.isOnline"
+        trigger="hover"
+      >
+        <template #trigger>
+          <span style="width: 5rem;">{{ computed_data.used_men_percent }}%
+          </span>
+        </template>
+        已用内存
+      </n-popover>
+
       <span :class="['status-icon', wifi_info.isOnline ? 'online' : 'offline']">
         <i
           v-if="wifi_info.isOnline"

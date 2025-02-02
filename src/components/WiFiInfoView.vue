@@ -84,7 +84,7 @@ const connect_ap = async () => {
     message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
   } catch (error) {
     console.error(error)
-    message.error(error)
+    message.error(error.toString())
   }
 }
 

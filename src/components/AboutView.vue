@@ -26,7 +26,7 @@ const load_data = async () => {
     resp = await api.get(wifi_info.value.host + '/info')
     resp = await resp.json()
   } catch (err) {
-    message.error(err)
+    message.error(err.toString())
     console.error(err)
   }
 
