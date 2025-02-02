@@ -13,34 +13,40 @@ const chipVersions = [
 ]
 
 export const useDeviceStore = defineStore('device', () => {
-  const isOnline = ref(false)
-  const host = ref("")
-  const use_user_host = ref(false)
-  const user_host = ref("")
-  const repo_id = ref(0)
-  const latest_tag_name = ref("")
-  const sha = ref("")
-  const compile_time = ref("")
-  const firmware_version = ref("")
-  const idf_version = ref("")
-  const git_commit_id = ref("")
-  const sta_ssid = ref("")
-  const sta_pass = ref("")
-  const package_version = ref(0)
-  const chip_version = ref(0)
-  const cpu_freq = ref(0)
-  const manuf = reactive({})
-  const imu_data = reactive({})
+
+  const imu_data = reactive({
+    roll: ref(0),
+    pitch: ref(0)
+  })
   const wsmgr = reactive({ instance: null })
 
-  const package_version_str = computed(() => chipVersions[package_version.value])
-  const chip_version_str = computed(() => `v${chip_version.value / 100}.${chip_version.value / 10 % 10}`)
-  const cpu_freq_str = computed(() => `${cpu_freq.value / 1000000}Mhz`)
-  const firmware_tree = computed(() => `https://github.com/xizeyoupan/magic-wand/tree/${git_commit_id.value}`)
+  const wifi_info = reactive({
+    isOnline: ref(false),
+    host: ref(""),
+    use_user_host: ref(""),
+    user_host: ref(""),
+    sta_ssid: ref(""),
+    sta_pass: ref(""),
+  })
+
+  const device_info = reactive({
+    compile_time: ref(""),
+    firmware_version: ref(""),
+    idf_version: ref(""),
+    git_commit_id: ref(""),
+    package_version: ref(""),
+    chip_version: ref(""),
+    cpu_freq: ref(0),
+  })
+
+  const computed_data = reactive({
+    package_version_str: computed(() => chipVersions[device_info.package_version]),
+    chip_version_str: computed(() => `v${device_info.chip_version / 100}.${device_info.chip_version / 10 % 10}`),
+    firmware_tree: computed(() => `https://github.com/xizeyoupan/magic-wand/tree/${device_info.git_commit_id}`),
+    cpu_freq_str: computed(() => `${device_info.cpu_freq / 1000000}Mhz`),
+  })
 
   return {
-    isOnline, host, use_user_host, user_host, repo_id, latest_tag_name, sha, git_commit_id, sta_ssid, sta_pass,
-    compile_time, firmware_version, idf_version, package_version, chip_version, cpu_freq, manuf,
-    package_version_str, chip_version_str, cpu_freq_str, firmware_tree, wsmgr, imu_data
+    wifi_info, device_info, computed_data, wsmgr, imu_data
   }
 })

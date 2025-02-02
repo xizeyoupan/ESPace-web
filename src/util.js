@@ -1,15 +1,15 @@
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { ref, toRef, toRefs } from 'vue'
 import { api } from './api.js'
 
 class WebSocketManager {
   constructor(url, device) {
     this.url = url
-    this.isOnline = storeToRefs(device).isOnline
-    this.imu_data = storeToRefs(device).imu_data
+    this.wifi_info = storeToRefs(device.wifi_info)
+    this.imu_data = storeToRefs(device.imu_data)
     this.ws = null
     this.heartCheck = {
-      timeout: 10000, // 10秒
+      timeout: 2000, // 2s
       timeoutObj: null,
       serverTimeoutObj: null,
       reset: () => {
@@ -38,30 +38,30 @@ class WebSocketManager {
 
     this.ws.onopen = () => {
       console.log("WebSocket 连接成功")
-      this.isOnline.value = true
+      this.wifi_info.isOnline.value = true
       this.heartCheck.start()
     }
 
     this.ws.onmessage = (event) => {
-      this.isOnline.value = true
+      this.wifi_info.isOnline.value = true
       console.log("收到消息:", event.data)
       this.heartCheck.reset()
 
       let view = new DataView(event.data)
       let roll = ref(view.getFloat32(1, true))
       let pitch = ref(view.getFloat32(5, true))
-      this.imu_data.value.roll = roll
-      this.imu_data.value.pitch = pitch
+      this.imu_data.roll.value = roll
+      this.imu_data.pitch.value = pitch
     }
 
     this.ws.onclose = () => {
-      this.isOnline.value = false
+      this.wifi_info.isOnline.value = false
       console.log("WebSocket 连接关闭，尝试重连...")
       this.reconnect()
     }
 
     this.ws.onerror = (error) => {
-      this.isOnline.value = false
+      this.wifi_info.isOnline.value = false
       console.error("WebSocket 发生错误:", error)
       this.reconnect()
     }
@@ -108,25 +108,25 @@ class WebSocketManager {
 }
 
 const get_host_from_fetch = async (device, resp_promise) => {
-  const { isOnline, host } = storeToRefs(device)
+  const { wifi_info } = storeToRefs(device)
 
   let resp = await resp_promise
   let resp_host = resp.url.slice(0, -7)
   resp = await resp.text()
 
   if (resp === '0721esp32wand') {
-    host.value = resp_host
+    wifi_info.value.host = resp_host
   } else {
     throw new Error(`${resp_host} is Not wand`)
   }
 }
 
 export const connect_device = async (device, message) => {
-  const { isOnline, user_host, host, wsmgr } = storeToRefs(device)
+  const { wifi_info, wsmgr } = storeToRefs(device)
 
   const mdns_fetch = api.get("http://wand-esp32/whoami")
   const ipv4_fetch = api.get("http://192.168.4.1/whoami")
-  const user_config_fetch = api.get(user_host.value ? `http://${user_host.value}/whoami` : 'http://localhost',)
+  const user_config_fetch = api.get(wifi_info.value.user_host ? `http://${wifi_info.value.user_host}/whoami` : 'http://localhost',)
   try {
     await Promise.any([
       get_host_from_fetch(device, mdns_fetch),
@@ -137,7 +137,7 @@ export const connect_device = async (device, message) => {
     if (wsmgr.value.instance) {
       wsmgr.value.instance.del()
     }
-    wsmgr.value.instance = new WebSocketManager(`ws://${host.value.slice(7)}/ws`, device)
+    wsmgr.value.instance = new WebSocketManager(`ws://${wifi_info.value.host.slice(7)}/ws`, device)
     message.success("连接成功")
   } catch (error) {
     console.warn(error)
@@ -145,8 +145,8 @@ export const connect_device = async (device, message) => {
 }
 
 export const check_not_oline = (device, message) => {
-  const { isOnline } = storeToRefs(device)
-  if (!isOnline.value) {
+  const { wifi_info } = storeToRefs(device)
+  if (!wifi_info.value.isOnline) {
     message.error('设备不在线，请重新连接')
     console.log('设备不在线，请重新连接')
     return true

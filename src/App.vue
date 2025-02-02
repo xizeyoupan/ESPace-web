@@ -8,14 +8,14 @@ import { useDeviceStore } from './stores/device.js'
 const message = useMessage()
 const device = useDeviceStore()
 
-const { isOnline, host, use_user_host, user_host } = storeToRefs(device)
+const { wifi_info } = storeToRefs(device)
 const showModal = ref(false)
 
 const config_host = () => {
   showModal.value = true
 }
 
-if (!isOnline.value) {
+if (!wifi_info.value.isOnline) {
   await connect_device(device, message)
 }
 
@@ -28,9 +28,9 @@ if (!isOnline.value) {
       class="status-container"
       @click="config_host"
     >
-      <span :class="['status-icon', isOnline ? 'online' : 'offline']">
+      <span :class="['status-icon', wifi_info.isOnline ? 'online' : 'offline']">
         <i
-          v-if="isOnline"
+          v-if="wifi_info.isOnline"
           class="fas fa-circle"
           title="在线"
         />
@@ -40,7 +40,7 @@ if (!isOnline.value) {
           title="离线"
         />
       </span>
-      <span class="status-text">{{ isOnline ? '在线' : '离线' }}</span>
+      <span class="status-text">{{ wifi_info.isOnline ? '在线' : '离线' }}</span>
     </div>
   </div>
 
@@ -58,8 +58,8 @@ if (!isOnline.value) {
     >
       <n-flex>
         <n-switch
-          :value="use_user_host"
-          @update:value="(v) => { use_user_host = v }"
+          :value="wifi_info.use_user_host"
+          @update:value="(v) => { wifi_info.use_user_host = v }"
         >
           <template #checked>
             已启用自定义
@@ -73,10 +73,10 @@ if (!isOnline.value) {
       <n-flex>
         <div>魔杖ip：</div>
         <n-input
-          v-model:value="user_host"
+          v-model:value="wifi_info.user_host"
           type="text"
-          :disabled="!use_user_host"
-          :placeholder="use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`"
+          :disabled="!wifi_info.use_user_host"
+          :placeholder="wifi_info.use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`"
         />
       </n-flex>
 

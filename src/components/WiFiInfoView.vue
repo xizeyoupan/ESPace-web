@@ -9,13 +9,13 @@ import { get, set } from 'idb-keyval'
 
 import { NList, NListItem, NButton, NFlex, NPopover, NModal, NInput, NDivider } from "naive-ui"
 
+const device = useDeviceStore()
+const { wifi_info } = storeToRefs(device)
+
 const wifi_lsit = ref([])
 const message = useMessage()
-const device = useDeviceStore()
-let wifi_info = reactive({})
-
-const { host, } = storeToRefs(device)
-let { manuf } = storeToRefs(device)
+const wifi_list_item_info = reactive({})
+const manuf = reactive({ data: ref(null) })
 
 const wifiAuthModes = [
   "OPEN",
@@ -52,7 +52,7 @@ const get_wifi_list = async () => {
   let messageReactive
   try {
     messageReactive = message.loading("正在扫描", { duration: 20000 })
-    let resp = await api.get(host.value + '/wifi_list', { timeout: 20000 })
+    let resp = await api.get(wifi_info.value.host + '/wifi_list', { timeout: 20000 })
     resp = await resp.json()
     wifi_lsit.value = resp.wifi_lsit
   } catch (error) {
@@ -80,7 +80,7 @@ const connect_ap = async () => {
   })
 
   try {
-    let resp = await api.post(host.value + '/connect_ap', { timeout: 5000, body: data })
+    let resp = await api.post(wifi_info.value.host + '/connect_ap', { timeout: 5000, body: data })
     message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
   } catch (error) {
     console.error(error)
@@ -93,9 +93,9 @@ const get_wifi_info = async () => {
 
   try {
     messageReactive = message.loading("正在刷新", { duration: 2000 })
-    let resp = await api.get(host.value + '/wifi_info')
+    let resp = await api.get(wifi_info.value.host + '/wifi_info')
     resp = await resp.json()
-    Object.assign(wifi_info, resp)
+    Object.assign(wifi_list_item_info, resp)
   } catch (error) {
     console.error(error)
   } finally {
@@ -104,13 +104,13 @@ const get_wifi_info = async () => {
   }
 }
 
-manuf.value.data = await get('manuf')
+manuf.data = await get('manuf')
 
-if (!manuf.value.data) {
+if (!manuf.data) {
   api.get('https://www.wireshark.org/assets/json/manuf.json', { timeout: 20000 })
     .then(res => res.json())
     .then(res => {
-      manuf.value.data = res.data
+      manuf.data = res.data
       set('manuf', res.data)
     })
     .catch(err => {
@@ -136,24 +136,24 @@ await get_wifi_info()
     </n-button>
   </n-flex>
 
-  <div><span class="label">WiFi模式:</span>{{ `${wifiModes[wifi_info.WiFi_mode]}` }}</div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">SSID:</span>{{ wifi_info.SSID }}
+  <div><span class="label">WiFi模式:</span>{{ `${wifiModes[wifi_list_item_info.WiFi_mode]}` }}</div>
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">SSID:</span>{{ wifi_list_item_info.SSID }}
   </div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">RSSI:</span>{{ wifi_info.RSSI }}
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">RSSI:</span>{{ wifi_list_item_info.RSSI }}
   </div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">Channel:</span>{{ wifi_info.channel }}
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">Channel:</span>{{ wifi_list_item_info.channel }}
   </div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">本机ip:</span>{{ wifi_info.ip }}
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">本机ip:</span>{{ wifi_list_item_info.ip }}
   </div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">网关ip:</span>{{ wifi_info.gw }}
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">网关ip:</span>{{ wifi_list_item_info.gw }}
   </div>
-  <div v-if="wifi_info.WiFi_mode === 1">
-    <span class="label">子网掩码:</span>{{ wifi_info.netmask }}
+  <div v-if="wifi_list_item_info.WiFi_mode === 1">
+    <span class="label">子网掩码:</span>{{ wifi_list_item_info.netmask }}
   </div>
 
   <n-divider />

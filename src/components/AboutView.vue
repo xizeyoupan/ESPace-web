@@ -11,60 +11,38 @@ const web_version = GIT_VERSION
 const message = useMessage()
 const device = useDeviceStore()
 const {
-  isOnline, host, use_user_host, user_host, repo_id, latest_tag_name, sha, git_commit_id,
-  compile_time, firmware_version, idf_version, package_version, chip_version, cpu_freq,
-  package_version_str, chip_version_str, cpu_freq_str, firmware_tree
+  wifi_info,
+  device_info,
+  computed_data
 } = storeToRefs(device)
 
-let latest_tree = ''
+const load_data = async () => {
 
-const get_latest_version = async () => {
-  sha.value = "sha"
-
-  if (sha.value) return
+  if (check_not_oline(device, message)) return
+  let resp
 
   try {
-    let result = await github_api.get("repos/xizeyoupan/magic-wand")
-    result = await result.json()
-    repo_id.value = result.id
-
-    result = await github_api.get("repos/xizeyoupan/magic-wand/releases/latest")
-    result = await result.json()
-
-    latest_tag_name.value ||= result.tag_name
-
-    result = await github_api.get(`repositories/${repo_id.value}/git/ref/tags/${latest_tag_name.value}`)
-    result = await result.json()
-
-    sha.value ||= result?.object?.sha?.slice(0, 7)
-
-    latest_tree = `https://github.com/xizeyoupan/magic-wand/tree/${sha.value}`
-  } catch (error) {
-    console.error(error)
-    message.error('获取最新版本失败，检查与github的连接')
+    resp = await api.get(wifi_info.value.host + '/info')
+    resp = await resp.json()
+  } catch (err) {
+    message.error(err)
+    console.error(err)
   }
-}
 
-const load_data = async () => {
-  if (check_not_oline(device, message)) return
-
-  let resp = await api.get(host.value + '/info')
-  resp = await resp.json()
-
-  chip_version.value = resp.chip_version
-  compile_time.value = resp.compile_time
-  cpu_freq.value = resp.cpu_freq
-  firmware_version.value = resp.firmware_version
-  git_commit_id.value = resp.git_commit_id
-  idf_version.value = resp.idf_version
-  package_version.value = resp.package_version
+  device_info.value.chip_version = resp.chip_version
+  device_info.value.compile_time = resp.compile_time
+  device_info.value.cpu_freq = resp.cpu_freq
+  device_info.value.firmware_version = resp.firmware_version
+  device_info.value.git_commit_id = resp.git_commit_id
+  device_info.value.idf_version = resp.idf_version
+  device_info.value.package_version = resp.package_version
 }
 
 await Promise.race(
   [
-    sleep_ms(5000),
+    sleep_ms(1500),
     (async () => {
-      while (!isOnline.value) {
+      while (!wifi_info.value.isOnline) {
         await sleep_ms(10)
       }
     })()
@@ -73,7 +51,7 @@ await Promise.race(
 
 try {
   message.loading('正在读取')
-  const tasks = [get_latest_version(), load_data()]
+  const tasks = [load_data()]
   await Promise.allSettled(tasks)
 
 } catch (error) {
@@ -84,16 +62,16 @@ try {
 
 <template>
   <h2>关于</h2>
-  <p>prefixURL：{{ host }}</p>
+  <p>prefixURL：{{ wifi_info.host }}</p>
   <p>
     <span>
-      固件版本：{{ firmware_version }}&nbsp;
+      固件版本：{{ device_info.firmware_version }}&nbsp;
     </span>
     <a
       target="_blank"
-      :href="firmware_tree"
+      :href="computed_data.firmware_tree"
     >
-      {{ git_commit_id }}
+      {{ device_info.git_commit_id }}
     </a>
   </p>
   <p>
@@ -106,26 +84,20 @@ try {
     >
       <img src="https://img.shields.io/badge/github-gray">
     </a>
-    <!-- <a
-      target="_blank"
-      :href="latest_tree"
-    >
-      {{ `${latest_tag_name} ${sha}` }}
-    </a> -->
   </p>
-  <p>编译时间：{{ compile_time }}</p>
-  <p>IDF版本： {{ idf_version }}</p>
-  <p>芯片封装： {{ package_version_str }}</p>
+  <p>编译时间：{{ device_info.compile_time }}</p>
+  <p>IDF版本： {{ device_info.idf_version }}</p>
+  <p>芯片封装： {{ computed_data.package_version_str }}</p>
   <p>
     芯片版本：
     <a
       target="_blank"
-      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${chip_version_str.slice(1).replace('.', '-')}.html`"
+      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${computed_data.chip_version_str.slice(1).replace('.', '-')}.html`"
     >
-      {{ chip_version_str }}
+      {{ computed_data.chip_version_str }}
     </a>
   </p>
-  <p>CPU频率： {{ cpu_freq_str }}</p>
+  <p>CPU频率： {{ computed_data.cpu_freq_str }}</p>
   <p>
     web版本：
     <a
