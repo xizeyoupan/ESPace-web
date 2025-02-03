@@ -9,6 +9,7 @@ class WebSocketManager {
     this.wifi_info = storeToRefs(device.wifi_info)
     this.imu_data = storeToRefs(device.imu_data)
     this.stat_data = storeToRefs(device.stat_data)
+    this.user_config = storeToRefs(device.user_config)
     this.ws = null
     this.heartCheck = {
       timeout: 3000,
@@ -42,6 +43,8 @@ class WebSocketManager {
       console.log("WebSocket 连接成功")
       this.wifi_info.isOnline.value = true
       this.heartCheck.start()
+
+      this.ws.send("0")
     }
 
     this.ws.onmessage = (event) => {
@@ -54,6 +57,17 @@ class WebSocketManager {
         const data_type = view.getUint8(0)
 
         switch (data_type) {
+        case 0x00: // User config
+          this.user_config.ws2812_gpio_num.value.data = ref(view.getUint32(1, true))
+          this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
+          this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
+          this.user_config.enable_imu.value.data = ref(view.getUint8(13))
+          let received_config = Object(this.user_config)
+          for (let key in received_config) {
+            received_config[key] = received_config[key].value.data
+          }
+          console.log("get config:", received_config)
+          break
         case 0x01: // IMU Data
           let roll = ref(view.getFloat32(1, true))
           let pitch = ref(view.getFloat32(5, true))
@@ -122,6 +136,7 @@ class WebSocketManager {
           break
         default:
           console.warn("未知数据类型:", data_type)
+          console.log("event.data:", event.data)
           break
         }
       }

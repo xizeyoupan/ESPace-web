@@ -152,6 +152,13 @@ device_info.value.dev_mode = await get("dev_mode")
     <RouterLink
       v-if="device_info.dev_mode"
       class="nowrap"
+      to="/config"
+    >
+      自定义配置
+    </RouterLink>
+    <RouterLink
+      v-if="device_info.dev_mode"
+      class="nowrap"
       to="/dev"
     >
       开发者模式

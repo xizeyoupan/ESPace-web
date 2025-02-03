@@ -2,9 +2,10 @@
 import { ref, onMounted, watch } from 'vue'
 import { useDeviceStore } from '../stores/device.js'
 import { storeToRefs } from 'pinia'
+import { useMessage, NSwitch } from "naive-ui"
 
 const device = useDeviceStore()
-const { imu_data } = storeToRefs(device)
+const { imu_data, user_config } = storeToRefs(device)
 
 var meter1 = 0
 var meter2 = 0
@@ -269,7 +270,35 @@ watch(
 </script>
 
 <template>
+  <div />
   <div id="can">
+    <p>
+      <n-switch
+        :value="user_config.enable_imu"
+        @update:value="(v) => { }"
+      >
+        <template #checked>
+          开启
+        </template>
+        <template #unchecked>
+          关闭
+        </template>
+      </n-switch>
+    </p>
+    <div>
+      <span>
+        <span>
+          Base demo：
+        </span>
+        <a
+          target="_blank"
+          href="https://github.com/nopnop2002/esp-idf-mpu6050-dmp"
+        >
+          <img src="https://img.shields.io/badge/nopnop2002-esp--idf--mpu6050--dmp-brightgreen">
+        </a>
+      </span>
+    </div>
+
     <div>
       <canvas id="canvas0" />
     </div>

@@ -9,6 +9,7 @@ import MusicFromNetView from './components/MusicFromNetView.vue'
 import MusicToBTView from './components/MusicToBTView.vue'
 import GestureDetectView from './components/GestureDetectView.vue'
 import WiFiInfoView from './components/WiFiInfoView.vue'
+import UserConfigView from './components/UserConfigView.vue'
 
 
 const routes = [
@@ -22,6 +23,7 @@ const routes = [
   { path: '/music-to-bt', component: MusicToBTView },
   { path: '/gesture-detection', component: GestureDetectView },
   { path: '/wifi-info', component: WiFiInfoView },
+  { path: '/config', component: UserConfigView },
 ]
 
 const router = createRouter({

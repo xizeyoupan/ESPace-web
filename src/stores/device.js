@@ -81,7 +81,14 @@ export const useDeviceStore = defineStore('device', () => {
     })
   }
 
+  const user_config = reactive({
+    ws2812_gpio_num: reactive({ data: ref(-1), display: true }),
+    mpu_sda_gpio_num: reactive({ data: ref(-1), display: true }),
+    mpu_scl_gpio_num: reactive({ data: ref(-1), display: true }),
+    enable_imu: reactive({ data: ref(0), display: true }),
+  })
+
   return {
-    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list
+    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config
   }
 })

@@ -111,7 +111,7 @@ try {
       target="_blank"
       href="https://github.com/xizeyoupan/magic-wand"
     >
-      <img src="https://img.shields.io/badge/github-gray">
+      <img src="https://img.shields.io/badge/xizeyoupan-magic--wand-brightgreen">
     </a>
   </p>
   <p>编译时间：{{ device_info.compile_time }}</p>
