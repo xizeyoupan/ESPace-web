@@ -44,7 +44,7 @@ class WebSocketManager {
       this.wifi_info.isOnline.value = true
       this.heartCheck.start()
 
-      this.ws.send("0")
+      this.get_config()
     }
 
     this.ws.onmessage = (event) => {
@@ -62,7 +62,8 @@ class WebSocketManager {
           this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
           this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
           this.user_config.enable_imu.value.data = ref(view.getUint8(13))
-          let received_config = Object(this.user_config)
+          this.user_config.enable_imu_det.value.data = ref(view.getUint8(14))
+          let received_config = Object.assign({}, this.user_config)
           for (let key in received_config) {
             received_config[key] = received_config[key].value.data
           }
@@ -193,6 +194,25 @@ class WebSocketManager {
 
     console.log("WebSocketManager 资源清理完毕")
   }
+
+  commit_config() {
+    console.log(this.user_config.ws2812_gpio_num.data)
+    let view = new DataView(new ArrayBuffer(15))
+    view.setUint8(0, 0x01)
+    view.setUint32(1, this.user_config.ws2812_gpio_num.data, true)
+    view.setUint32(5, this.user_config.mpu_sda_gpio_num.data, true)
+    view.setUint32(9, this.user_config.mpu_scl_gpio_num.data, true)
+    view.setUint8(13, this.user_config.enable_imu.data)
+    view.setUint8(14, this.user_config.enable_imu_det.data)
+    console.log("commit config:", view)
+    this.sendMessage(view.buffer)
+  }
+
+  get_config() {
+    let view = new DataView(new ArrayBuffer(1))
+    view.setUint8(0, 0x00)
+    this.sendMessage(view.buffer)
+  }
 }
 
 const get_host_from_fetch = async (device, resp_promise) => {
@@ -212,9 +232,9 @@ const get_host_from_fetch = async (device, resp_promise) => {
 export const connect_device = async (device, message) => {
   const { wifi_info, wsmgr } = storeToRefs(device)
 
-  const mdns_fetch = api.get("http://wand-esp32/whoami")
-  const ipv4_fetch = api.get("http://192.168.4.1/whoami")
-  const user_config_fetch = api.get(wifi_info.value.user_host ? `http://${wifi_info.value.user_host}/whoami` : 'http://localhost',)
+  const mdns_fetch = api.get("http://wand-esp32/whoami", { timeout: 2000 })
+  const ipv4_fetch = api.get("http://192.168.4.1/whoami", { timeout: 2000 })
+  const user_config_fetch = api.get(wifi_info.value.user_host ? `http://${wifi_info.value.user_host}/whoami` : 'http://localhost', { timeout: 2000 })
   try {
     await Promise.any([
       get_host_from_fetch(device, mdns_fetch),

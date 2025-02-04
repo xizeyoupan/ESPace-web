@@ -24,7 +24,10 @@ const { user_config } = storeToRefs(device)
         :key="item"
         style="margin-left: 15px;"
       >
-        <n-form-item :label="item">
+        <n-form-item
+          v-if="user_config[item].display"
+          :label="item"
+        >
           <n-input-number
             v-if="typeof (user_config[item].data) === 'number'"
             v-model:value="user_config[item].data"

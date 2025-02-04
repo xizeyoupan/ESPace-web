@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useMessage, NSwitch } from "naive-ui"
 
 const device = useDeviceStore()
-const { imu_data, user_config } = storeToRefs(device)
+const { imu_data, user_config, wsmgr } = storeToRefs(device)
 
 var meter1 = 0
 var meter2 = 0
@@ -233,20 +233,20 @@ function update_data(values) {
     gauge3.update()
     break
   case 'DATA':
-    console.log("DATA values[1]=" + values[1])
+    // console.log("DATA values[1]=" + values[1])
     var val1 = parseFloat(values[1])
     gauge1.value = val1
     gauge1.update({ valueText: val1.toFixed(1) })
     roll = val1 * deg2rad
     if (meter2) {
-      console.log("DATA values[2]=" + values[2])
+      // console.log("DATA values[2]=" + values[2])
       var val2 = parseFloat(values[2])
       gauge2.value = val2
       gauge2.update({ valueText: val2.toFixed(1) })
       pitch = val2 * deg2rad
     }
     if (meter3) {
-      console.log("DATA values[3]=" + values[3])
+      // console.log("DATA values[3]=" + values[3])
       var val3 = parseFloat(values[3])
       gauge3.value = val3
       gauge3.update({ valueText: val3.toFixed(1) })
@@ -274,16 +274,12 @@ watch(
   <div id="can">
     <p>
       <n-switch
-        :value="user_config.enable_imu"
-        @update:value="(v) => { }"
-      >
-        <template #checked>
-          开启
-        </template>
-        <template #unchecked>
-          关闭
-        </template>
-      </n-switch>
+        :value="Boolean(user_config.enable_imu_det.data)"
+        @update:value="(v) => {
+          user_config.enable_imu_det.data = Number(v)
+          wsmgr.instance.commit_config()
+        }"
+      />
     </p>
     <div>
       <span>

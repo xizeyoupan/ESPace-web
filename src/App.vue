@@ -16,11 +16,11 @@ const config_host = () => {
   showModal.value = true
 }
 
-if (!wifi_info.value.isOnline) {
-  await connect_device(device, message)
-}
-
 device_info.value.dev_mode = await get("dev_mode")
+
+if (!wifi_info.value.isOnline) {
+  connect_device(device, message)
+}
 
 </script>
 
