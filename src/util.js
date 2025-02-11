@@ -246,9 +246,14 @@ export const connect_device = async (device, message) => {
       wsmgr.value.instance.del()
     }
     wsmgr.value.instance = new WebSocketManager(`ws://${wifi_info.value.host.slice(7)}/ws`, device)
-    message.success("连接成功")
   } catch (error) {
     console.warn(error)
+  } finally {
+    if (wifi_info.value.host) {
+      message.success("连接成功")
+    } else {
+      message.warning("连接失败")
+    }
   }
 }
 

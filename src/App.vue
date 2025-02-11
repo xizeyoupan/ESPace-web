@@ -109,23 +109,41 @@ if (!wifi_info.value.isOnline) {
     </RouterLink>
     <RouterLink
       class="nowrap"
+      to="/gesture-detection"
+    >
+      姿态检测
+    </RouterLink>
+    <RouterLink
+      class="nowrap"
+      to="/cnn"
+    >
+      CNN
+    </RouterLink>
+    <!-- <RouterLink
+      class="nowrap"
       to="/bt-info"
     >
       蓝牙信息
-    </RouterLink>
-    <RouterLink
+    </RouterLink> -->
+    <!-- <RouterLink
+      class="nowrap"
+      to="/bt-info"
+    >
+      蓝牙信息
+    </RouterLink> -->
+    <!-- <RouterLink
       class="nowrap"
       to="/ble-gamepad"
     >
       蓝牙手柄
-    </RouterLink>
-    <RouterLink
+    </RouterLink> -->
+    <!-- <RouterLink
       class="nowrap"
       to="/ir-control"
     >
       红外遥控
-    </RouterLink>
-    <RouterLink
+    </RouterLink> -->
+    <!-- <RouterLink
       class="nowrap"
       to="/music-from-net"
     >
@@ -136,13 +154,7 @@ if (!wifi_info.value.isOnline) {
       to="/music-to-bt"
     >
       蓝牙音乐播放
-    </RouterLink>
-    <RouterLink
-      class="nowrap"
-      to="/gesture-detection"
-    >
-      姿态检测
-    </RouterLink>
+    </RouterLink> -->
     <RouterLink
       class="nowrap"
       to="/about"

@@ -10,11 +10,12 @@ import MusicToBTView from './components/MusicToBTView.vue'
 import GestureDetectView from './components/GestureDetectView.vue'
 import WiFiInfoView from './components/WiFiInfoView.vue'
 import UserConfigView from './components/UserConfigView.vue'
-
+import CNNView from './components/CNNView.vue'
 
 const routes = [
   { path: '/', redirect: '/about' },
   { path: '/about', component: AboutView },
+  { path: '/cnn', component: CNNView },
   { path: '/ble-gamepad', component: BTGamePadView },
   { path: '/bt-info', component: BTInfoView },
   { path: '/dev', component: DevModeView },
