@@ -1,6 +1,18 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref, toRef, toRefs } from 'vue'
 import { api } from './api.js'
+import { AnsiUp } from 'ansi_up'
+
+const ansi_up = new AnsiUp()
+
+const FETCHED_USER_CONFIG_DATA_PREFIX = 0x00
+const FETCHED_WS_IMU_DATA_PREFIX = 0x01
+const FETCHED_STAT_DATA_PREFIX = 0x02
+const FETCHED_LOG_DATA_PREFIX = 0x03
+
+const COMMIT_GET_USER_CONFIG_DATA_PREFIX = 0x00
+const COMMIT_SET_USER_CONFIG_DATA_PREFIX = 0x01
+const COMMIT_RESET_USER_CONFIG_DATA_PREFIX = 0x02
 
 class WebSocketManager {
   constructor(url, device) {
@@ -10,6 +22,8 @@ class WebSocketManager {
     this.imu_data = storeToRefs(device.imu_data)
     this.stat_data = storeToRefs(device.stat_data)
     this.user_config = storeToRefs(device.user_config)
+    this.log_text_list = storeToRefs(device).log_text_list
+
     this.ws = null
     this.heartCheck = {
       timeout: 3000,
@@ -57,88 +71,92 @@ class WebSocketManager {
         const data_type = view.getUint8(0)
 
         switch (data_type) {
-        case 0x00: // User config
-          this.user_config.ws2812_gpio_num.value.data = ref(view.getUint32(1, true))
-          this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
-          this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
-          this.user_config.enable_imu.value.data = ref(view.getUint8(13))
-          this.user_config.enable_imu_det.value.data = ref(view.getUint8(14))
-          let received_config = Object.assign({}, this.user_config)
-          for (let key in received_config) {
-            received_config[key] = received_config[key].value.data
-          }
-          console.log("get config:", received_config)
-          break
-        case 0x01: // IMU Data
-          let roll = ref(view.getFloat32(1, true))
-          let pitch = ref(view.getFloat32(5, true))
-          this.imu_data.roll.value = roll
-          this.imu_data.pitch.value = pitch
-          break
-        case 0x02: // Stat Info
-          // 1 byte: STAT_DATA_PREFIX
-          // 1 bytes: task_count
+          case FETCHED_USER_CONFIG_DATA_PREFIX: // load user config
+            this.user_config.ws2812_gpio_num.value.data = ref(view.getUint32(1, true))
+            this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
+            this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
+            this.user_config.enable_imu_det.value.data = ref(view.getUint8(13))
+            let received_config = Object.assign({}, this.user_config)
+            for (let key in received_config) {
+              received_config[key] = received_config[key].value.data
+            }
+            console.log("get config:", received_config)
+            break
+          case FETCHED_WS_IMU_DATA_PREFIX: // IMU Data
+            let roll = ref(view.getFloat32(1, true))
+            let pitch = ref(view.getFloat32(5, true))
+            this.imu_data.roll.value = roll
+            this.imu_data.pitch.value = pitch
+            break
+          case FETCHED_STAT_DATA_PREFIX: // Stat Info
+            // 1 byte: STAT_DATA_PREFIX
+            // 1 bytes: task_count
 
-          // 1 byte: task_name_length
-          // n bytes: task_name
-          // 1 byte: task_number
-          // 1 byte: task_state
-          // 2 bytes: stack_water_mark
+            // 1 byte: task_name_length
+            // n bytes: task_name
+            // 1 byte: task_number
+            // 1 byte: task_state
+            // 2 bytes: stack_water_mark
 
-          // 4 bytes: total_free_bytes
-          // 4 bytes: total_allocated_bytes
-          // 4 bytes: largest_free_block
-          // 4 bytes: minimum_free_bytes
-          // 2 bytes: ws_bytes_available
+            // 4 bytes: total_free_bytes
+            // 4 bytes: total_allocated_bytes
+            // 4 bytes: largest_free_block
+            // 4 bytes: minimum_free_bytes
+            // 2 bytes: ws_bytes_available
 
-          let data_index = 1
-          let task_count = view.getUint8(data_index)
-          data_index += 1
-          // console.log("task_count:", task_count)
-          this.stat_data.task_list.value.length = 0
-          for (let i = 0; i < task_count; i++) {
-
-            const task_item = reactive({
-              task_name: ref(""),
-              task_number: ref(0),
-              task_state: ref(0),
-              stack_water_mark: ref(0)
-            })
-
-            let task_name_length = view.getUint8(data_index)
+            let data_index = 1
+            let task_count = view.getUint8(data_index)
             data_index += 1
-            task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
-            data_index += task_name_length
-            task_item.task_number = view.getUint8(data_index)
-            data_index += 1
-            task_item.task_state = view.getUint8(data_index)
-            data_index += 1
-            task_item.stack_water_mark = view.getUint16(data_index, true)
+            // console.log("task_count:", task_count)
+            this.stat_data.task_list.value.length = 0
+            for (let i = 0; i < task_count; i++) {
+
+              const task_item = reactive({
+                task_name: ref(""),
+                task_number: ref(0),
+                task_state: ref(0),
+                stack_water_mark: ref(0)
+              })
+
+              let task_name_length = view.getUint8(data_index)
+              data_index += 1
+              task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
+              data_index += task_name_length
+              task_item.task_number = view.getUint8(data_index)
+              data_index += 1
+              task_item.task_state = view.getUint8(data_index)
+              data_index += 1
+              task_item.stack_water_mark = view.getUint16(data_index, true)
+              data_index += 2
+
+              // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
+
+              this.stat_data.task_list.value.push(task_item)
+            }
+
+            this.device.sort_task_list()
+
+            this.stat_data.total_free_bytes.value = view.getUint32(data_index, true)
+            data_index += 4
+            this.stat_data.total_allocated_bytes.value = view.getUint32(data_index, true)
+            data_index += 4
+            this.stat_data.largest_free_block.value = view.getUint32(data_index, true)
+            data_index += 4
+            this.stat_data.minimum_free_bytes.value = view.getUint32(data_index, true)
+            data_index += 4
+            this.stat_data.ws_bytes_available.value = view.getUint16(data_index, true)
             data_index += 2
-
-            // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
-
-            this.stat_data.task_list.value.push(task_item)
-          }
-
-          this.device.sort_task_list()
-
-          this.stat_data.total_free_bytes.value = view.getUint32(data_index, true)
-          data_index += 4
-          this.stat_data.total_allocated_bytes.value = view.getUint32(data_index, true)
-          data_index += 4
-          this.stat_data.largest_free_block.value = view.getUint32(data_index, true)
-          data_index += 4
-          this.stat_data.minimum_free_bytes.value = view.getUint32(data_index, true)
-          data_index += 4
-          this.stat_data.ws_bytes_available.value = view.getUint16(data_index, true)
-          data_index += 2
-          // console.log("total_free_bytes:", this.stat_data.total_free_bytes.value, "total_allocated_bytes:", this.stat_data.total_allocated_bytes.value, "largest_free_block:", this.stat_data.largest_free_block.value, "minimum_free_bytes:", this.stat_data.minimum_free_bytes.value, "ws_bytes_available:", this.stat_data.ws_bytes_available.value)
-          break
-        default:
-          console.warn("未知数据类型:", data_type)
-          console.log("event.data:", event.data)
-          break
+            // console.log("total_free_bytes:", this.stat_data.total_free_bytes.value, "total_allocated_bytes:", this.stat_data.total_allocated_bytes.value, "largest_free_block:", this.stat_data.largest_free_block.value, "minimum_free_bytes:", this.stat_data.minimum_free_bytes.value, "ws_bytes_available:", this.stat_data.ws_bytes_available.value)
+            break
+          case FETCHED_LOG_DATA_PREFIX:
+            let log_line = new TextDecoder().decode(new Uint8Array(event.data, 1, event.data.byteLength - 1))
+            // console.log(log_line)
+            this.log_text_list.value.push(ansi_up.ansi_to_html(log_line))
+            break
+          default:
+            console.warn("未知数据类型:", data_type)
+            console.log("event.data:", event.data)
+            break
         }
       }
     }
@@ -196,21 +214,25 @@ class WebSocketManager {
   }
 
   commit_config() {
-    console.log(this.user_config.ws2812_gpio_num.data)
-    let view = new DataView(new ArrayBuffer(15))
-    view.setUint8(0, 0x01)
+    let view = new DataView(new ArrayBuffer(14))
+    view.setUint8(0, COMMIT_SET_USER_CONFIG_DATA_PREFIX)
     view.setUint32(1, this.user_config.ws2812_gpio_num.data, true)
     view.setUint32(5, this.user_config.mpu_sda_gpio_num.data, true)
     view.setUint32(9, this.user_config.mpu_scl_gpio_num.data, true)
-    view.setUint8(13, this.user_config.enable_imu.data)
-    view.setUint8(14, this.user_config.enable_imu_det.data)
+    view.setUint8(13, this.user_config.enable_imu_det.data)
     console.log("commit config:", view)
     this.sendMessage(view.buffer)
   }
 
   get_config() {
     let view = new DataView(new ArrayBuffer(1))
-    view.setUint8(0, 0x00)
+    view.setUint8(0, COMMIT_GET_USER_CONFIG_DATA_PREFIX)
+    this.sendMessage(view.buffer)
+  }
+
+  reset_config() {
+    let view = new DataView(new ArrayBuffer(1))
+    view.setUint8(0, COMMIT_RESET_USER_CONFIG_DATA_PREFIX)
     this.sendMessage(view.buffer)
   }
 }

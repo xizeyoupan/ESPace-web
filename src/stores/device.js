@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, reactive } from 'vue'
 
+
 const chipVersions = [
   "ESP32D0WDQ6",
   "ESP32D0WDQ5",
@@ -85,11 +86,12 @@ export const useDeviceStore = defineStore('device', () => {
     ws2812_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     mpu_sda_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     mpu_scl_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
-    enable_imu: reactive({ data: ref(0), display: true, type: 'number' }),
     enable_imu_det: reactive({ data: ref(0), display: false, type: 'number' }),
   })
 
+  const log_text_list = ref([])
+
   return {
-    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config
+    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config, log_text_list
   }
 })
