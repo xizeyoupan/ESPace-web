@@ -13,6 +13,7 @@ const FETCHED_LOG_DATA_PREFIX = 0x03
 const COMMIT_GET_USER_CONFIG_DATA_PREFIX = 0x00
 const COMMIT_SET_USER_CONFIG_DATA_PREFIX = 0x01
 const COMMIT_RESET_USER_CONFIG_DATA_PREFIX = 0x02
+const COMMIT_RESET_IMU_PREFIX = 0x03
 
 class WebSocketManager {
   constructor(url, device) {
@@ -71,92 +72,105 @@ class WebSocketManager {
         const data_type = view.getUint8(0)
 
         switch (data_type) {
-          case FETCHED_USER_CONFIG_DATA_PREFIX: // load user config
-            this.user_config.ws2812_gpio_num.value.data = ref(view.getUint32(1, true))
-            this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
-            this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
-            this.user_config.enable_imu_det.value.data = ref(view.getUint8(13))
-            let received_config = Object.assign({}, this.user_config)
-            for (let key in received_config) {
-              received_config[key] = received_config[key].value.data
-            }
-            console.log("get config:", received_config)
-            break
-          case FETCHED_WS_IMU_DATA_PREFIX: // IMU Data
-            let roll = ref(view.getFloat32(1, true))
-            let pitch = ref(view.getFloat32(5, true))
-            this.imu_data.roll.value = roll
-            this.imu_data.pitch.value = pitch
-            break
-          case FETCHED_STAT_DATA_PREFIX: // Stat Info
-            // 1 byte: STAT_DATA_PREFIX
-            // 1 bytes: task_count
+        case FETCHED_USER_CONFIG_DATA_PREFIX: // load user config
+          this.user_config.ws2812_gpio_num.value.data = ref(view.getUint32(1, true))
+          this.user_config.mpu_sda_gpio_num.value.data = ref(view.getUint32(5, true))
+          this.user_config.mpu_scl_gpio_num.value.data = ref(view.getUint32(9, true))
+          this.user_config.enable_imu_det.value.data = ref(view.getUint8(13))
+          this.user_config.enable_ws_log.value.data = ref(view.getUint8(14))
+          let received_config = Object.assign({}, this.user_config)
+          for (let key in received_config) {
+            received_config[key] = received_config[key].value.data
+          }
+          console.log("get config:", received_config)
+          break
+        case FETCHED_WS_IMU_DATA_PREFIX: // IMU Data
+          let roll = ref(view.getFloat32(1, true))
+          let pitch = ref(view.getFloat32(5, true))
+          let ax = ref(view.getFloat32(9, true))
+          let ay = ref(view.getFloat32(13, true))
+          let az = ref(view.getFloat32(17, true))
+          let gx = ref(view.getFloat32(21, true))
+          let gy = ref(view.getFloat32(25, true))
+          let gz = ref(view.getFloat32(29, true))
+          this.imu_data.roll.value = roll
+          this.imu_data.pitch.value = pitch
+          this.imu_data.ax.value = ax
+          this.imu_data.ay.value = ay
+          this.imu_data.az.value = az
+          this.imu_data.gx.value = gx
+          this.imu_data.gy.value = gy
+          this.imu_data.gz.value = gz
+          break
+        case FETCHED_STAT_DATA_PREFIX: // Stat Info
+          // 1 byte: STAT_DATA_PREFIX
+          // 1 bytes: task_count
 
-            // 1 byte: task_name_length
-            // n bytes: task_name
-            // 1 byte: task_number
-            // 1 byte: task_state
-            // 2 bytes: stack_water_mark
+          // 1 byte: task_name_length
+          // n bytes: task_name
+          // 1 byte: task_number
+          // 1 byte: task_state
+          // 2 bytes: stack_water_mark
 
-            // 4 bytes: total_free_bytes
-            // 4 bytes: total_allocated_bytes
-            // 4 bytes: largest_free_block
-            // 4 bytes: minimum_free_bytes
-            // 2 bytes: ws_bytes_available
+          // 4 bytes: total_free_bytes
+          // 4 bytes: total_allocated_bytes
+          // 4 bytes: largest_free_block
+          // 4 bytes: minimum_free_bytes
+          // 2 bytes: ws_bytes_available
 
-            let data_index = 1
-            let task_count = view.getUint8(data_index)
+          let data_index = 1
+          let task_count = view.getUint8(data_index)
+          data_index += 1
+          // console.log("task_count:", task_count)
+          this.stat_data.task_list.value.length = 0
+          for (let i = 0; i < task_count; i++) {
+
+            const task_item = reactive({
+              task_name: ref(""),
+              task_number: ref(0),
+              task_state: ref(0),
+              stack_water_mark: ref(0)
+            })
+
+            let task_name_length = view.getUint8(data_index)
             data_index += 1
-            // console.log("task_count:", task_count)
-            this.stat_data.task_list.value.length = 0
-            for (let i = 0; i < task_count; i++) {
-
-              const task_item = reactive({
-                task_name: ref(""),
-                task_number: ref(0),
-                task_state: ref(0),
-                stack_water_mark: ref(0)
-              })
-
-              let task_name_length = view.getUint8(data_index)
-              data_index += 1
-              task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
-              data_index += task_name_length
-              task_item.task_number = view.getUint8(data_index)
-              data_index += 1
-              task_item.task_state = view.getUint8(data_index)
-              data_index += 1
-              task_item.stack_water_mark = view.getUint16(data_index, true)
-              data_index += 2
-
-              // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
-
-              this.stat_data.task_list.value.push(task_item)
-            }
-
-            this.device.sort_task_list()
-
-            this.stat_data.total_free_bytes.value = view.getUint32(data_index, true)
-            data_index += 4
-            this.stat_data.total_allocated_bytes.value = view.getUint32(data_index, true)
-            data_index += 4
-            this.stat_data.largest_free_block.value = view.getUint32(data_index, true)
-            data_index += 4
-            this.stat_data.minimum_free_bytes.value = view.getUint32(data_index, true)
-            data_index += 4
-            this.stat_data.ws_bytes_available.value = view.getUint16(data_index, true)
+            task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
+            data_index += task_name_length
+            task_item.task_number = view.getUint8(data_index)
+            data_index += 1
+            task_item.task_state = view.getUint8(data_index)
+            data_index += 1
+            task_item.stack_water_mark = view.getUint16(data_index, true)
             data_index += 2
-            // console.log("total_free_bytes:", this.stat_data.total_free_bytes.value, "total_allocated_bytes:", this.stat_data.total_allocated_bytes.value, "largest_free_block:", this.stat_data.largest_free_block.value, "minimum_free_bytes:", this.stat_data.minimum_free_bytes.value, "ws_bytes_available:", this.stat_data.ws_bytes_available.value)
-            break
-          case FETCHED_LOG_DATA_PREFIX:
-            let log_line = new TextDecoder().decode(new Uint8Array(event.data, 1, event.data.byteLength - 1))
-            // console.log(log_line)
-            this.log_text_list.value.push(ansi_up.ansi_to_html(log_line))
-            break
-          default:
-            console.warn("未知数据类型:", data_type)
-            console.log("event.data:", event.data)
-            break
+
+            // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
+
+            this.stat_data.task_list.value.push(task_item)
+          }
+
+          this.device.sort_task_list()
+
+          this.stat_data.total_free_bytes.value = view.getUint32(data_index, true)
+          data_index += 4
+          this.stat_data.total_allocated_bytes.value = view.getUint32(data_index, true)
+          data_index += 4
+          this.stat_data.largest_free_block.value = view.getUint32(data_index, true)
+          data_index += 4
+          this.stat_data.minimum_free_bytes.value = view.getUint32(data_index, true)
+          data_index += 4
+          this.stat_data.ws_bytes_available.value = view.getUint16(data_index, true)
+          data_index += 2
+          // console.log("total_free_bytes:", this.stat_data.total_free_bytes.value, "total_allocated_bytes:", this.stat_data.total_allocated_bytes.value, "largest_free_block:", this.stat_data.largest_free_block.value, "minimum_free_bytes:", this.stat_data.minimum_free_bytes.value, "ws_bytes_available:", this.stat_data.ws_bytes_available.value)
+          break
+        case FETCHED_LOG_DATA_PREFIX:
+          let log_line = new TextDecoder().decode(new Uint8Array(event.data, 1, event.data.byteLength - 1))
+          // console.log(log_line)
+          this.log_text_list.value.push(ansi_up.ansi_to_html(log_line))
+          break
+        default:
+          console.warn("未知数据类型:", data_type)
+          console.log("event.data:", event.data)
+          break
         }
       }
     }
@@ -214,12 +228,13 @@ class WebSocketManager {
   }
 
   commit_config() {
-    let view = new DataView(new ArrayBuffer(14))
+    let view = new DataView(new ArrayBuffer(15))
     view.setUint8(0, COMMIT_SET_USER_CONFIG_DATA_PREFIX)
     view.setUint32(1, this.user_config.ws2812_gpio_num.data, true)
     view.setUint32(5, this.user_config.mpu_sda_gpio_num.data, true)
     view.setUint32(9, this.user_config.mpu_scl_gpio_num.data, true)
     view.setUint8(13, this.user_config.enable_imu_det.data)
+    view.setUint8(14, this.user_config.enable_ws_log.data)
     console.log("commit config:", view)
     this.sendMessage(view.buffer)
   }
@@ -234,6 +249,14 @@ class WebSocketManager {
     let view = new DataView(new ArrayBuffer(1))
     view.setUint8(0, COMMIT_RESET_USER_CONFIG_DATA_PREFIX)
     this.sendMessage(view.buffer)
+    console.log("reset config")
+  }
+
+  reset_imu() {
+    let view = new DataView(new ArrayBuffer(1))
+    view.setUint8(0, COMMIT_RESET_IMU_PREFIX)
+    this.sendMessage(view.buffer)
+    console.log("reset imu")
   }
 }
 

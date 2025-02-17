@@ -17,8 +17,16 @@ export const useDeviceStore = defineStore('device', () => {
 
   const imu_data = reactive({
     roll: ref(0),
-    pitch: ref(0)
+    pitch: ref(0),
+    yaw: ref(0),
+    ax: ref(0),
+    ay: ref(0),
+    az: ref(0),
+    gx: ref(0),
+    gy: ref(0),
+    gz: ref(0),
   })
+
   const wsmgr = reactive({ instance: null })
 
   const wifi_info = reactive({
@@ -87,6 +95,7 @@ export const useDeviceStore = defineStore('device', () => {
     mpu_sda_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     mpu_scl_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     enable_imu_det: reactive({ data: ref(0), display: false, type: 'number' }),
+    enable_ws_log: reactive({ data: ref(0), display: true, type: 'number' }),
   })
 
   const log_text_list = ref([])
