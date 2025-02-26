@@ -1,19 +1,20 @@
 <script setup>
 import { ref, onMounted, h, reactive, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton } from "naive-ui"
+import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
 import { useDeviceStore } from '../stores/device.js'
 import { get } from 'idb-keyval'
 
 const message = useMessage()
 const device = useDeviceStore()
 
-const { wifi_info, device_info, computed_data } = storeToRefs(device)
+const { wifi_info, device_info, computed_data, wsmgr } = storeToRefs(device)
 
 
 const nav = ref("")
 const model_loading_method = ref(null)
 const model_id = ref(null)
+const record_ready = ref(false)
 
 const new_dataset = reactive(
   {
@@ -21,14 +22,21 @@ const new_dataset = reactive(
     sample_tick: ref(null), //采样间隔
     sample_size: ref(null), //采样数量
     protion: {
-      train: ref(3),
-      validation: ref(1),
-      test: ref(1)
+      train: 3,
+      validation: 1,
+      test: 1
     },
     item_types: ref([]),
     items: ref([]),
   }
 )
+
+const update_record_ready = (state) => {
+  if (state) {
+    wsmgr.value.instance.ready_to_scan_imu_data(new_dataset)
+  }
+  record_ready.value = state
+}
 
 const dataset_type_cols = [
   {
@@ -343,7 +351,15 @@ const dataset_type_items_for_table = computed(() => {
           </n-flex>
         </template>
         <template #2>
-          Pane 2
+          <div>
+            <span>
+              采集状态：
+            </span>
+            <n-switch
+              :value="record_ready"
+              @update:value="update_record_ready"
+            />
+          </div>
         </template>
       </n-split>
     </div>

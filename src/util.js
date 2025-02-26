@@ -14,6 +14,7 @@ const COMMIT_GET_USER_CONFIG_DATA_PREFIX = 0x00
 const COMMIT_SET_USER_CONFIG_DATA_PREFIX = 0x01
 const COMMIT_RESET_USER_CONFIG_DATA_PREFIX = 0x02
 const COMMIT_RESET_IMU_PREFIX = 0x03
+const COMMIT_READY_TO_SCAN = 0x04
 
 class WebSocketManager {
   constructor(url, device) {
@@ -257,6 +258,16 @@ class WebSocketManager {
     view.setUint8(0, COMMIT_RESET_IMU_PREFIX)
     this.sendMessage(view.buffer)
     console.log("reset imu")
+  }
+
+  ready_to_scan_imu_data(model) {
+    let view = new DataView(new ArrayBuffer(6))
+    view.setUint8(0, COMMIT_READY_TO_SCAN)
+    view.setUint8(1, model.type)
+    view.setUint16(2, model.sample_tick)
+    view.setUint16(4, model.sample_size)
+    this.sendMessage(view.buffer)
+    console.log("ready_to_scan_imu_data")
   }
 }
 
