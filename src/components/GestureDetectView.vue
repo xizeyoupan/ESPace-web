@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useDeviceStore } from '../stores/device.js'
 import { storeToRefs } from 'pinia'
 import { useMessage, NSwitch, NButton, NGrid, NGridItem } from "naive-ui"
@@ -67,7 +67,16 @@ function init() {
   } // tick
 } // init
 
+onUnmounted(() => {
+  user_config.value.enable_imu_det.data = 0
+  wsmgr.value.instance.commit_config()
+})
+
 onMounted(() => {
+  user_config.value.enable_imu_det.data = 1
+  if (wsmgr.value.instance) {
+    wsmgr.value.instance.commit_config()
+  }
 
   gauge1 = new RadialGauge({
     renderTo: 'canvas1',

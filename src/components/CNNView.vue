@@ -163,6 +163,12 @@ const dataset_type_items_for_table = computed(() => {
   return data
 })
 
+const handle_row_check = (keys, rows, meta) => {
+  if (meta.action === "check") {
+    console.log(rows[0])
+  }
+}
+
 </script>
 
 <template>
@@ -347,6 +353,7 @@ const dataset_type_items_for_table = computed(() => {
               :columns="dataset_type_cols"
               :pagination="pagination"
               :data="dataset_type_items_for_table"
+              @update:checked-row-keys="handle_row_check"
             />
           </n-flex>
         </template>
