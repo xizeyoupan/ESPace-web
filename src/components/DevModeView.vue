@@ -104,7 +104,7 @@ const rowKey = (row) => row.task_number
     </div>
     <div><span class="label">最大剩余块：</span>{{ stat_data.largest_free_block }}</div>
     <div><span class="label">迄今最小剩余内存：</span>{{ stat_data.minimum_free_bytes }}</div>
-    <div><span class="label">ws buffer 剩余容量：</span>{{ stat_data.ws_bytes_available }}</div>
+    <!-- <div><span class="label">ws buffer 剩余容量：</span>{{ stat_data.ws_bytes_available }}</div> -->
 
     <h2>
       <span>任务信息</span>

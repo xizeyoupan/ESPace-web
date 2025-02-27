@@ -9,6 +9,7 @@ const FETCHED_USER_CONFIG_DATA_PREFIX = 0x00
 const FETCHED_WS_IMU_DATA_PREFIX = 0x01
 const FETCHED_STAT_DATA_PREFIX = 0x02
 const FETCHED_LOG_DATA_PREFIX = 0x03
+const FETCHED_DATASET_DATA_PREFIX = 0x04
 
 const COMMIT_GET_USER_CONFIG_DATA_PREFIX = 0x00
 const COMMIT_SET_USER_CONFIG_DATA_PREFIX = 0x01
@@ -28,13 +29,14 @@ class WebSocketManager {
 
     this.ws = null
     this.heartCheck = {
-      timeout: 3000,
+      timeout: 10000,
       timeoutObj: null,
       serverTimeoutObj: null,
       reset: () => {
         clearTimeout(this.heartCheck.timeoutObj)
         clearTimeout(this.heartCheck.serverTimeoutObj)
         this.heartCheck.start()
+        console.log("reset heart check")
       },
       start: () => {
         this.heartCheck.timeoutObj = setTimeout(() => {
@@ -159,8 +161,6 @@ class WebSocketManager {
           data_index += 4
           this.stat_data.minimum_free_bytes.value = view.getUint32(data_index, true)
           data_index += 4
-          this.stat_data.ws_bytes_available.value = view.getUint16(data_index, true)
-          data_index += 2
           // console.log("total_free_bytes:", this.stat_data.total_free_bytes.value, "total_allocated_bytes:", this.stat_data.total_allocated_bytes.value, "largest_free_block:", this.stat_data.largest_free_block.value, "minimum_free_bytes:", this.stat_data.minimum_free_bytes.value, "ws_bytes_available:", this.stat_data.ws_bytes_available.value)
           break
         case FETCHED_LOG_DATA_PREFIX:
@@ -168,9 +168,14 @@ class WebSocketManager {
           // console.log(log_line)
           this.log_text_list.value.push(ansi_up.ansi_to_html(log_line))
           break
+        case FETCHED_DATASET_DATA_PREFIX:
+          let dataset_size = view.getUint32(1, true)
+          console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
+          break
         default:
           console.warn("未知数据类型:", data_type)
           console.log("event.data:", event.data)
+          console.log("size:", event.data.byteLength)
           break
         }
       }
