@@ -99,8 +99,9 @@ export const useDeviceStore = defineStore('device', () => {
   })
 
   const log_text_list = ref([])
+  const dataset_data_view = ref(null)
 
   return {
-    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config, log_text_list
+    wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config, log_text_list, dataset_data_view
   }
 })

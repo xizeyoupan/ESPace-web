@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, h, reactive, computed } from 'vue'
+import { ref, onMounted, h, reactive, computed, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
 import { useDeviceStore } from '../stores/device.js'
@@ -8,13 +8,13 @@ import { get } from 'idb-keyval'
 const message = useMessage()
 const device = useDeviceStore()
 
-const { wifi_info, device_info, computed_data, wsmgr } = storeToRefs(device)
-
+const { wifi_info, device_info, computed_data, wsmgr, dataset_data_view } = storeToRefs(device)
 
 const nav = ref("")
 const model_loading_method = ref(null)
 const model_id = ref(null)
 const record_ready = ref(false)
+const checked_model_type_id = ref(null)
 
 const new_dataset = reactive(
   {
@@ -31,7 +31,58 @@ const new_dataset = reactive(
   }
 )
 
+onMounted(() => {
+  watchEffect(() => {
+    if (!dataset_data_view.value) {
+      return
+    }
+    console.log("dataset_data_view changed: ", dataset_data_view.value)
+    let dataset_size = dataset_data_view.value.getUint32(1, true)
+    let ax = []
+    let ay = []
+    let az = []
+    let gx = []
+    let gy = []
+    let gz = []
+    for (let i = 0; i < dataset_size; i++) {
+      ax.push(dataset_data_view.value.getFloat32(5 + (0 * dataset_size + i) * 4, true))
+      ay.push(dataset_data_view.value.getFloat32(5 + (1 * dataset_size + i) * 4, true))
+      az.push(dataset_data_view.value.getFloat32(5 + (2 * dataset_size + i) * 4, true))
+      gx.push(dataset_data_view.value.getFloat32(5 + (3 * dataset_size + i) * 4, true))
+      gy.push(dataset_data_view.value.getFloat32(5 + (4 * dataset_size + i) * 4, true))
+      gz.push(dataset_data_view.value.getFloat32(5 + (5 * dataset_size + i) * 4, true))
+    }
+
+    let item = {
+      ax: ax,
+      ay: ay,
+      az: az,
+      gx: gx,
+      gy: gy,
+      gz: gz,
+      type: checked_model_type_id.value,
+    }
+
+    new_dataset.items.push(item)
+    console.log("new_dataset item: ", item)
+  })
+})
+
 const update_record_ready = (state) => {
+  if (new_dataset.type === null) {
+    message.error("请选择模型类型")
+    return
+  } else if (new_dataset.sample_size == null) {
+    message.error("请输入采样数量")
+    return
+  } else if (new_dataset.sample_tick == null) {
+    message.error("请输入采样间隔")
+    return
+  } else if (new_dataset.sample_size > 500) {
+    message.error("采样数量不能超过500")
+    return
+  }
+
   if (state) {
     wsmgr.value.instance.ready_to_scan_imu_data(new_dataset)
   }
@@ -164,20 +215,17 @@ const dataset_type_items_for_table = computed(() => {
 })
 
 const handle_row_check = (keys, rows, meta) => {
+  //选中类别
   if (meta.action === "check") {
-    console.log(rows[0])
+    checked_model_type_id.value = rows[0].id
+    console.log("checked_model_type_id: ", checked_model_type_id.value, ", comment: ", new_dataset.item_types[checked_model_type_id.value].comment)
   }
 }
 
 </script>
 
 <template>
-  <n-menu
-    mode="horizontal"
-    :options="menuOptions"
-    responsive
-    @update:value="handleNavUpdateValue"
-  />
+  <n-menu mode="horizontal" :options="menuOptions" responsive @update:value="handleNavUpdateValue" />
   <div class="cnn-container">
     <div v-if="!nav">
       <p>
@@ -188,69 +236,37 @@ const handle_row_check = (keys, rows, meta) => {
 
     <div v-else-if="nav === `load_model`">
       <n-flex align="center">
-        <n-select
-          v-model:value="model_loading_method"
-          placeholder="选择载入方式"
-          style="width: 20%;"
-          :options="model_loading_options"
-        />
-        <n-select
-          v-model:value="model_id"
-          placeholder="选择模型"
-          style="width: 20%;"
-          :options="mode_list"
-          @update:value="handleModelUpdateValue"
-        />
+        <n-select v-model:value="model_loading_method" placeholder="选择载入方式" style="width: 20%;"
+          :options="model_loading_options" />
+        <n-select v-model:value="model_id" placeholder="选择模型" style="width: 20%;" :options="mode_list"
+          @update:value="handleModelUpdateValue" />
       </n-flex>
     </div>
 
     <div v-else-if="nav === `new_model`">
       <n-flex align="center">
-        <n-select
-          v-model:value="model_loading_method"
-          placeholder="选择模型类型"
-          style="width: 20%;"
-          :options="model_loading_options"
-        />
-        <n-select
-          v-model:value="model_id"
-          placeholder="选择模型"
-          style="width: 20%;"
-          :options="mode_list"
-          @update:value="handleModelUpdateValue"
-        />
+        <n-select v-model:value="model_loading_method" placeholder="选择模型类型" style="width: 20%;"
+          :options="model_loading_options" />
+        <n-select v-model:value="model_id" placeholder="选择模型" style="width: 20%;" :options="mode_list"
+          @update:value="handleModelUpdateValue" />
       </n-flex>
     </div>
 
     <div v-else-if="nav === `new_dataset`">
-      <n-flex
-        vertical
-        style="gap: 20px;"
-      >
+      <n-flex vertical style="gap: 20px;">
         <n-flex align="center">
-          <n-select
-            v-model:value="new_dataset.type"
-            placeholder="选择模型类型"
-            style="width: 30%;"
-            :options="mode_type_list"
-          />
+          <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;" :options="mode_type_list"
+            @update:value="(value) => { record_ready = false }" />
           <span v-if="new_dataset.type != null">{{ mode_type_list[new_dataset.type].desc }}</span>
         </n-flex>
 
 
         <n-flex align="center">
           <span>采样间隔</span>
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input-number
-                v-model:value="new_dataset.sample_tick"
-                style="width: 30%;"
-                clearable
-                placeholder="请输入采样间隔(ms)"
-              />
+              <n-input-number v-model:value="new_dataset.sample_tick" style="width: 30%;" clearable
+                placeholder="请输入采样间隔(ms)" :min="1" @update:value="(value) => { record_ready = false }" />
             </template>
             每隔几毫秒进行一次采样
           </n-popover>
@@ -258,31 +274,18 @@ const handle_row_check = (keys, rows, meta) => {
 
         <n-flex align="center">
           <span>采样数量</span>
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input-number
-                v-model:value="new_dataset.sample_size"
-                style="width: 30%;"
-                clearable
-                placeholder="请输入数据数量"
-              />
+              <n-input-number v-model:value="new_dataset.sample_size" style="width: 30%;" clearable
+                placeholder="请输入数据数量" :min="10" :max="500" @update:value="(value) => { record_ready = false }" />
             </template>
             对于指令模型，如果一个周期内实际采样的点数与该值不一致，则会超采或降采样到这个值；对于连续模型，这个值就是一次推理采样到的数量。
           </n-popover>
 
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input
-                style="width: 30%;"
-                disabled
-                :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'"
-              />
+              <n-input style="width: 30%;" disabled
+                :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'" />
             </template>
             单次采样等效时长
           </n-popover>
@@ -290,71 +293,40 @@ const handle_row_check = (keys, rows, meta) => {
 
         <n-flex align="center">
           <span>训练集、验证集、测试集相对比例</span>
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input-number
-                v-model:value="new_dataset.protion.train"
-                style="width: 20%;"
-              />
+              <n-input-number v-model:value="new_dataset.protion.train" style="width: 20%;" />
             </template>
             train
           </n-popover>
 
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input-number
-                v-model:value="new_dataset.protion.validation"
-                style="width: 20%;"
-              />
+              <n-input-number v-model:value="new_dataset.protion.validation" style="width: 20%;" />
             </template>
             validation
           </n-popover>
 
-          <n-popover
-            trigger="hover"
-            placement="bottom"
-          >
+          <n-popover trigger="hover" placement="bottom">
             <template #trigger>
-              <n-input-number
-                v-model:value="new_dataset.protion.test"
-                style="width: 20%;"
-              />
+              <n-input-number v-model:value="new_dataset.protion.test" style="width: 20%;" />
             </template>
             test
           </n-popover>
         </n-flex>
       </n-flex>
 
-      <n-split
-        direction="horizontal"
-        style="margin-top: 20px;"
-      >
+      <n-split direction="horizontal" style="margin-top: 20px;">
         <template #1>
           <n-flex vertical>
             <n-flex align="center">
               <span style="font-weight: normal;">类别</span>
-              <n-button
-                style="margin-left: 10px;"
-                strong
-                secondary
-                type="info"
-                @click="gen_dataset_type_item"
-              >
+              <n-button style="margin-left: 10px;" strong secondary type="info" @click="gen_dataset_type_item">
                 新增
               </n-button>
             </n-flex>
-            <n-data-table
-              :columns="dataset_type_cols"
-              :pagination="pagination"
-              :data="dataset_type_items_for_table"
-              @update:checked-row-keys="handle_row_check"
-            />
+            <n-data-table :columns="dataset_type_cols" :pagination="pagination" :data="dataset_type_items_for_table"
+              @update:checked-row-keys="handle_row_check" />
           </n-flex>
         </template>
         <template #2>
@@ -362,10 +334,7 @@ const handle_row_check = (keys, rows, meta) => {
             <span>
               采集状态：
             </span>
-            <n-switch
-              :value="record_ready"
-              @update:value="update_record_ready"
-            />
+            <n-switch :value="record_ready" @update:value="update_record_ready" />
           </div>
         </template>
       </n-split>
