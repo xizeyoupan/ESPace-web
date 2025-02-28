@@ -298,7 +298,7 @@ const menuOptions = [
     key: "new_model",
   },
   {
-    label: "新建数据集",
+    label: "数据集",
     key: "new_dataset",
   },
 ]
@@ -401,7 +401,6 @@ const load_dataset = () => {
 
 const save_dataset = () => {
   let dataset_s = JSON.stringify(new_dataset)
-  console.log(dataset_s)
 
   const blob = new Blob([dataset_s], { type: 'application/json' })
 

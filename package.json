@@ -10,6 +10,7 @@
     "lint": "eslint 'src/**/*.{js,vue}' --fix"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
     "ansi_up": "^6.0.2",
     "idb-keyval": "^6.2.1",
     "ky": "^1.7.4",
