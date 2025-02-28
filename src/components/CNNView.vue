@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, h, reactive, computed, watchEffect } from 'vue'
+import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
 import { useDeviceStore } from '../stores/device.js'
@@ -18,6 +18,8 @@ const checked_model_type_id = ref(null)
 
 const new_dataset = reactive(
   {
+    id: ref(""),
+    desc: ref(""),
     type: ref(null),
     sample_tick: ref(null), //采样间隔
     sample_size: ref(null), //采样数量
@@ -31,12 +33,15 @@ const new_dataset = reactive(
   }
 )
 
-onMounted(() => {
-  watchEffect(() => {
-    if (!dataset_data_view.value) {
+watch(
+  () => dataset_data_view.value,
+  (newVal, oldVal) => {
+    // console.log("dataset_data_view changed: ", newVal)
+
+    if (checked_model_type_id.value === null) {
       return
     }
-    console.log("dataset_data_view changed: ", dataset_data_view.value)
+
     let dataset_size = dataset_data_view.value.getUint32(1, true)
     let ax = []
     let ay = []
@@ -53,20 +58,58 @@ onMounted(() => {
       gz.push(dataset_data_view.value.getFloat32(5 + (5 * dataset_size + i) * 4, true))
     }
 
+    let train_num = 0
+    let validation_num = 0
+    let test_num = 0
+
+    new_dataset.items.forEach((item) => {
+      if (item.set_type === "train") {
+        train_num++
+      } else if (item.set_type === "validation") {
+        validation_num++
+      } else if (item.set_type === "test") {
+        test_num++
+      }
+    })
+
+    const total_portion = new_dataset.protion.train + new_dataset.protion.validation + new_dataset.protion.test
+    let set_type_num = [
+      {
+        type: "train",
+        protion_diff: train_num / new_dataset.items.length - new_dataset.protion.train / total_portion
+      },
+      {
+        type: "validation",
+        protion_diff: validation_num / new_dataset.items.length - new_dataset.protion.validation / total_portion
+      },
+      {
+        type: "test",
+        protion_diff: test_num / new_dataset.items.length - new_dataset.protion.test / total_portion
+      }
+    ]
+
+    // sort
+    set_type_num.sort((a, b) => {
+      return a.protion_diff - b.protion_diff
+    })
+
     let item = {
+      id: new_dataset.items.length,
+      type_id: checked_model_type_id.value,
+      timestamp: Date.now(),
+      set_type: set_type_num[0].type,
       ax: ax,
       ay: ay,
       az: az,
       gx: gx,
       gy: gy,
       gz: gz,
-      type: checked_model_type_id.value,
     }
 
     new_dataset.items.push(item)
-    console.log("new_dataset item: ", item)
-  })
-})
+    // console.log("new_dataset item: ", item)
+  }
+)
 
 const update_record_ready = (state) => {
   if (new_dataset.type === null) {
@@ -102,13 +145,15 @@ const dataset_type_cols = [
     title: '名称',
     key: 'comment',
     render(row, index) {
-      console.log(row)
-      return h(NInput, {
-        value: row.comment,
-        onUpdateValue(v) {
-          new_dataset.item_types[index].comment = v
+      return h(
+        NInput,
+        {
+          value: row.comment,
+          onUpdateValue(v) {
+            new_dataset.item_types[index].comment = v
+          }
         }
-      })
+      )
     }
   },
   {
@@ -122,6 +167,115 @@ const dataset_type_cols = [
   {
     title: '测试集条数',
     key: 'test_num',
+  },
+  {
+    title: '删除',
+    key: 'actions',
+    render(row) {
+      return h(
+        NButton,
+        {
+          strong: true,
+          tertiary: true,
+          size: 'small',
+          onClick: () => {
+            new_dataset.item_types.splice(row.id, 1)
+            for (let i = row.id; i < new_dataset.item_types.length; i++) {
+              new_dataset.item_types[i].id = i
+            }
+          }
+        },
+        { default: () => '删除' }
+      )
+    }
+  },
+]
+
+const dataset_item_cols = [
+  {
+    title: 'id',
+    key: 'id',
+  },
+  {
+    title: '类型',
+    key: 'type_id',
+    render(row, index) {
+      return h(
+        NSelect,
+        {
+          value: new_dataset.items[index] ? new_dataset.items[index].type_id : "",
+          onUpdateValue(v) {
+            new_dataset.items[index].type_id = v
+          },
+          options: computed(() => {
+            return new_dataset.item_types.map((item) => {
+              return {
+                label: item.comment + " | " + item.id,
+                value: item.id
+              }
+            })
+          }).value,
+        },
+      )
+    }
+  },
+  {
+    title: '采样数量',
+    key: 'sample_size',
+    render(row) {
+      return h(
+        'span',
+        {},
+        row.ax.length
+      )
+    }
+  },
+  // {
+  //   title: '采集时间',
+  //   key: 'timestamp',
+  //   render(row) {
+  //     return h(
+  //       'span',
+  //       {},
+  //       new Date(row.timestamp).toLocaleString(
+  //         undefined,
+  //         {
+  //           year: '2-digit',
+  //           month: '2-digit',
+  //           day: '2-digit',
+  //           hour: '2-digit',
+  //           minute: '2-digit',
+  //           second: '2-digit',
+  //           fractionalSecondDigits: 3,
+  //         }
+  //       )
+  //     )
+  //   }
+  // },
+  {
+    title: '归类',
+    key: 'set_type',
+  },
+  {
+    title: '删除',
+    key: 'actions',
+    render(row) {
+      return h(
+        NButton,
+        {
+          strong: true,
+          tertiary: true,
+          size: 'small',
+          onClick: () => {
+            new_dataset.items.splice(row.id, 1)
+            for (let i = row.id; i < new_dataset.items.length; i++) {
+              new_dataset.items[i].id = i
+            }
+          }
+        },
+        { default: () => '删除' }
+      )
+    }
   },
 ]
 
@@ -195,6 +349,9 @@ function gen_dataset_type_item() {
     id: ref(new_dataset.item_types.length),
     comment: ref(""),
     desc: ref(""),
+    train_num: ref(0),
+    validation_num: ref(0),
+    test_num: ref(0),
   }
   data.key = ref(data.id)
   new_dataset.item_types.push(data)
@@ -203,23 +360,68 @@ function gen_dataset_type_item() {
 const dataset_type_items_for_table = computed(() => {
   let data = new_dataset.item_types.map((item) => {
 
-    item.train_num = 0
-    item.validation_num = 0
-    item.test_num = 0
-    console.log(item)
+    let train_num = 0
+    let validation_num = 0
+    let test_num = 0
+
+    new_dataset.items.forEach((each) => {
+      if (each.type_id != item.id) {
+        return
+      }
+
+      if (each.set_type === "train") {
+        train_num++
+      } else if (each.set_type === "validation") {
+        validation_num++
+      } else if (each.set_type === "test") {
+        test_num++
+      }
+    })
+
+    item.train_num = train_num
+    item.validation_num = validation_num
+    item.test_num = test_num
     return item
   })
-  console.log(data)
 
   return data
 })
 
-const handle_row_check = (keys, rows, meta) => {
+const handle_type_row_check = (keys, rows, meta) => {
   //选中类别
   if (meta.action === "check") {
     checked_model_type_id.value = rows[0].id
     console.log("checked_model_type_id: ", checked_model_type_id.value, ", comment: ", new_dataset.item_types[checked_model_type_id.value].comment)
   }
+}
+
+const load_dataset = () => {
+
+}
+
+const save_dataset = () => {
+  let dataset_s = JSON.stringify(new_dataset)
+  console.log(dataset_s)
+
+  const blob = new Blob([dataset_s], { type: 'application/json' })
+
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `wand-dataset-${new_dataset.id}-${new Date().toLocaleString(
+    undefined,
+    {
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }
+  )}.json`
+
+  // 触发点击事件，下载文件
+  link.click()
+
 }
 
 </script>
@@ -254,12 +456,30 @@ const handle_row_check = (keys, rows, meta) => {
 
     <div v-else-if="nav === `new_dataset`">
       <n-flex vertical style="gap: 20px;">
-        <n-flex align="center">
-          <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;" :options="mode_type_list"
-            @update:value="(value) => { record_ready = false }" />
-          <span v-if="new_dataset.type != null">{{ mode_type_list[new_dataset.type].desc }}</span>
-        </n-flex>
 
+        <n-flex align="center">
+          <span>模型名称</span>
+          <n-input v-model:value="new_dataset.id" type="text" placeholder="模型的id" style="width: 20%;" />
+          <span>模型简介</span>
+          <n-input v-model:value="new_dataset.desc" type="text" placeholder="模型的介绍" style="width: 60%;" />
+          <span>模型类别</span>
+          <n-popover trigger="hover" placement="bottom">
+            <template #trigger>
+              <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;"
+                :options="mode_type_list" @update:value="(value) => { record_ready = false }" />
+            </template>
+            <template v-if="new_dataset.type != null">
+              {{ mode_type_list[new_dataset.type].desc }}
+            </template>
+          </n-popover>
+
+          <n-button strong secondary type="info" @click="load_dataset">
+            导入
+          </n-button>
+          <n-button strong secondary type="success" @click="save_dataset">
+            保存
+          </n-button>
+        </n-flex>
 
         <n-flex align="center">
           <span>采样间隔</span>
@@ -318,7 +538,7 @@ const handle_row_check = (keys, rows, meta) => {
 
       <n-split direction="horizontal" style="margin-top: 20px;">
         <template #1>
-          <n-flex vertical>
+          <n-flex vertical style="padding-right: 10px;">
             <n-flex align="center">
               <span style="font-weight: normal;">类别</span>
               <n-button style="margin-left: 10px;" strong secondary type="info" @click="gen_dataset_type_item">
@@ -326,16 +546,37 @@ const handle_row_check = (keys, rows, meta) => {
               </n-button>
             </n-flex>
             <n-data-table :columns="dataset_type_cols" :pagination="pagination" :data="dataset_type_items_for_table"
-              @update:checked-row-keys="handle_row_check" />
+              @update:checked-row-keys="handle_type_row_check" />
           </n-flex>
         </template>
         <template #2>
-          <div>
-            <span>
-              采集状态：
-            </span>
-            <n-switch :value="record_ready" @update:value="update_record_ready" />
-          </div>
+          <n-flex vertical style="padding-left: 10px;">
+            <n-flex align="center">
+              <span>
+                采集状态：
+              </span>
+              <n-switch :value="record_ready" @update:value="update_record_ready" />
+              <n-button style="margin-left: 10px;" strong secondary type="info"
+                @click="() => { new_dataset.items.length = 0 }">
+                清空
+              </n-button>
+              <n-button style="margin-left: 10px;" strong secondary type="info" @click="() => {
+                new_dataset.items = new_dataset.items.filter(
+                  (item) => {
+                    return item.type_id != checked_model_type_id
+                  }
+                )
+                for (let i = 0; i < new_dataset.items.length; i++) {
+                  new_dataset.items[i].id = i
+                }
+              }">
+                删除选中类型
+              </n-button>
+            </n-flex>
+
+            <n-data-table :columns="dataset_item_cols" :pagination="pagination" :data="new_dataset.items"
+              @update:checked-row-keys="handle_type_row_check" />
+          </n-flex>
         </template>
       </n-split>
     </div>
