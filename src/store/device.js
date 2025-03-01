@@ -13,29 +13,29 @@ const chipVersions = [
   "ESP32D0WDR2V3"
 ]
 
-export const useDeviceStore = defineStore('device', () => {
+export const useDefaultStore = defineStore('device', () => {
 
   const imu_data = reactive({
-    roll: ref(0),
-    pitch: ref(0),
-    yaw: ref(0),
-    ax: ref(0),
-    ay: ref(0),
-    az: ref(0),
-    gx: ref(0),
-    gy: ref(0),
-    gz: ref(0),
+    roll: 0,
+    pitch: 0,
+    yaw: 0,
+    ax: 0,
+    ay: 0,
+    az: 0,
+    gx: 0,
+    gy: 0,
+    gz: 0,
   })
 
-  const wsmgr = reactive({ instance: null })
+  const wsmgr = reactive({})
 
   const wifi_info = reactive({
-    isOnline: ref(false),
-    host: ref(""),
-    use_user_host: ref(""),
-    user_host: ref(""),
-    sta_ssid: ref(""),
-    sta_pass: ref(""),
+    isOnline: false,
+    host: "",
+    use_user_host: "",
+    user_host: "",
+    sta_ssid: "",
+    sta_pass: "",
   })
 
   const device_info = reactive({
@@ -46,16 +46,16 @@ export const useDeviceStore = defineStore('device', () => {
     git_commit_id: ref(""),
     package_version: ref(""),
     chip_version: ref(""),
-    cpu_freq: ref(0),
+    cpu_freq: 0,
   })
 
   const stat_data = reactive({
     task_list: ref([]),
-    total_free_bytes: ref(0),
-    ws_bytes_available: ref(0),
-    minimum_free_bytes: ref(0),
-    largest_free_block: ref(0),
-    total_allocated_bytes: ref(0),
+    total_free_bytes: 0,
+    ws_bytes_available: 0,
+    minimum_free_bytes: 0,
+    largest_free_block: 0,
+    total_allocated_bytes: 0,
     task_list_order_column: ref("task_number"),
     task_list_order: ref(true),
   })
@@ -94,8 +94,8 @@ export const useDeviceStore = defineStore('device', () => {
     ws2812_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     mpu_sda_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
     mpu_scl_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
-    enable_imu_det: reactive({ data: ref(0), display: false, type: 'number' }),
-    enable_ws_log: reactive({ data: ref(0), display: true, type: 'number' }),
+    enable_imu_det: reactive({ data: 0, display: false, type: 'number' }),
+    enable_ws_log: reactive({ data: 0, display: true, type: 'number' }),
   })
 
   const log_text_list = ref([])

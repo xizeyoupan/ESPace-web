@@ -1,16 +1,16 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
 
-import AboutView from './components/AboutView.vue'
-import BTGamePadView from './components/BTGamePadView.vue'
-import BTInfoView from './components/BTInfoView.vue'
-import DevModeView from './components/DevModeView.vue'
-import IRRemoteControlView from './components/IRRemoteControlView.vue'
-import MusicFromNetView from './components/MusicFromNetView.vue'
-import MusicToBTView from './components/MusicToBTView.vue'
-import GestureDetectView from './components/GestureDetectView.vue'
-import WiFiInfoView from './components/WiFiInfoView.vue'
-import UserConfigView from './components/UserConfigView.vue'
-import CNNView from './components/CNNView.vue'
+import AboutView from './views/AboutView.vue'
+import BTGamePadView from './views/BTGamePadView.vue'
+import BTInfoView from './views/BTInfoView.vue'
+import DevModeView from './views/DevModeView.vue'
+import IRRemoteControlView from './views/IRRemoteControlView.vue'
+import MusicFromNetView from './views/MusicFromNetView.vue'
+import MusicToBTView from './views/MusicToBTView.vue'
+import GestureDetectView from './views/GestureDetectView.vue'
+import WiFiInfoView from './views/WiFiInfoView.vue'
+import UserConfigView from './views/UserConfigView.vue'
+import CNNView from './views/CNNView.vue'
 
 const routes = [
   { path: '/', redirect: '/about' },

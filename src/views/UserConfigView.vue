@@ -1,9 +1,9 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { NForm, NFormItem, NInput, NGrid, NGridItem, NInputNumber, NButton, NPopconfirm } from 'naive-ui'
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 import { storeToRefs } from 'pinia'
-const device = useDeviceStore()
+const device = useDefaultStore()
 const { user_config, wsmgr } = storeToRefs(device)
 
 const reset_config = () => {

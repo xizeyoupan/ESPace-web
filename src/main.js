@@ -1,9 +1,7 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import pinia from './store/index.js'
 import AppProvider from './AppProvider.vue'
 import router from './router'
-
-const pinia = createPinia()
 
 createApp(AppProvider)
   .use(router)

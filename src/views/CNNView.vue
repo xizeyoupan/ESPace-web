@@ -2,11 +2,11 @@
 import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 import { get } from 'idb-keyval'
 
 const message = useMessage()
-const device = useDeviceStore()
+const device = useDefaultStore()
 
 const { wifi_info, device_info, computed_data, wsmgr, dataset_data_view } = storeToRefs(device)
 

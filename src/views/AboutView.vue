@@ -4,13 +4,13 @@ import { ref, } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage } from "naive-ui"
 import { check_not_oline, sleep_ms } from '../util.js'
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 import { api, github_api } from '../api.js'
 import { get, set } from 'idb-keyval'
 
 const web_version = GIT_VERSION
 const message = useMessage()
-const device = useDeviceStore()
+const device = useDefaultStore()
 const {
   wifi_info,
   device_info,

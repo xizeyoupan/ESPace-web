@@ -2,14 +2,14 @@
 import { ref, reactive } from 'vue'
 import { useMessage } from "naive-ui"
 import { storeToRefs } from 'pinia'
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 import { api } from '../api.js'
 import { check_not_oline } from '../util.js'
 import { get, set } from 'idb-keyval'
 
 import { NList, NListItem, NButton, NFlex, NPopover, NModal, NInput, NDivider } from "naive-ui"
 
-const device = useDeviceStore()
+const device = useDefaultStore()
 const { wifi_info } = storeToRefs(device)
 
 const wifi_lsit = ref([])

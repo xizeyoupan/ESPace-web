@@ -2,10 +2,10 @@
 import { ref, h, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NDataTable } from "naive-ui"
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 
 const message = useMessage()
-const device = useDeviceStore()
+const device = useDefaultStore()
 const {
   wifi_info,
   device_info,

@@ -3,11 +3,11 @@ import { ref, onMounted, watchEffect, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NModal, NSwitch, NInput, NFlex, NButton, NPopover, NScrollbar } from "naive-ui"
 import { connect_device } from './util.js'
-import { useDeviceStore } from './stores/device.js'
+import { useDefaultStore } from './store/device.js'
 import { get } from 'idb-keyval'
 
 const message = useMessage()
-const device = useDeviceStore()
+const device = useDefaultStore()
 
 const { wifi_info, device_info, computed_data, log_text_list, user_config } = storeToRefs(device)
 const showModal = ref(false)

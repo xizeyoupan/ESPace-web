@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
-import { useDeviceStore } from '../stores/device.js'
+import { useDefaultStore } from '../store/device.js'
 import { storeToRefs } from 'pinia'
 import { useMessage, NSwitch, NButton, NGrid, NGridItem } from "naive-ui"
 
-const device = useDeviceStore()
+const device = useDefaultStore()
 const { imu_data, user_config, wsmgr } = storeToRefs(device)
 
 var meter1 = 0
