@@ -4,45 +4,40 @@ import { ref, } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage } from "naive-ui"
 import { check_not_oline, sleep_ms } from '../util.js'
-import { useDefaultStore } from '../store/device.js'
+import { useDefaultStore } from '../store/defaultStore.js'
 import { api, github_api } from '../api.js'
 import { get, set } from 'idb-keyval'
 
 const web_version = GIT_VERSION
 const message = useMessage()
-const device = useDefaultStore()
-const {
-  wifi_info,
-  device_info,
-  computed_data
-} = storeToRefs(device)
+const default_store = useDefaultStore()
 
 const load_data = async () => {
 
-  if (check_not_oline(device, message)) return
+  if (check_not_oline(message)) return
   let resp
 
   try {
-    resp = await api.get(wifi_info.value.host + '/info')
+    resp = await api.get(default_store.wifi_info.host + '/info')
     resp = await resp.json()
   } catch (err) {
     message.error(err.toString())
     console.error(err)
   }
 
-  device_info.value.chip_version = resp.chip_version
-  device_info.value.compile_time = resp.compile_time
-  device_info.value.cpu_freq = resp.cpu_freq
-  device_info.value.firmware_version = resp.firmware_version
-  device_info.value.git_commit_id = resp.git_commit_id
-  device_info.value.idf_version = resp.idf_version
-  device_info.value.package_version = resp.package_version
+  default_store.device_info.chip_version = resp.chip_version
+  default_store.device_info.compile_time = resp.compile_time
+  default_store.device_info.cpu_freq = resp.cpu_freq
+  default_store.device_info.firmware_version = resp.firmware_version
+  default_store.device_info.git_commit_id = resp.git_commit_id
+  default_store.device_info.idf_version = resp.idf_version
+  default_store.device_info.package_version = resp.package_version
 }
 
 let easter_egg_cnt = 8
 const trigger_egg = async () => {
   if (easter_egg_cnt == 5) {
-    if (device_info.value.dev_mode) {
+    if (default_store.device_info.dev_mode) {
       message.info('已处于开发者模式')
       return
     }
@@ -58,7 +53,7 @@ const trigger_egg = async () => {
   } else if (easter_egg_cnt == 0) {
     message.info('已处于开发者模式')
     await set("dev_mode", true)
-    device_info.value.dev_mode = true
+    default_store.device_info.dev_mode = true
   }
 
   easter_egg_cnt--
@@ -68,7 +63,7 @@ await Promise.race(
   [
     sleep_ms(1500),
     (async () => {
-      while (!wifi_info.value.isOnline) {
+      while (!default_store.wifi_info.isOnline) {
         await sleep_ms(10)
       }
     })()
@@ -88,51 +83,37 @@ try {
 
 <template>
   <h2>关于</h2>
-  <p>prefixURL：{{ wifi_info.host }}</p>
+  <p>prefixURL：{{ default_store.wifi_info.host }}</p>
   <p>
-    <span
-      style="user-select: none;"
-      @click="trigger_egg"
-    >
-      固件版本：{{ device_info.firmware_version }}&nbsp;
+    <span style="user-select: none;" @click="trigger_egg">
+      固件版本：{{ default_store.device_info.firmware_version }}&nbsp;
     </span>
-    <a
-      target="_blank"
-      :href="computed_data.firmware_tree"
-    >
-      {{ device_info.git_commit_id }}
+    <a target="_blank" :href="default_store.computed_data.firmware_tree">
+      {{ default_store.device_info.git_commit_id }}
     </a>
   </p>
   <p>
     <span>
       最新版本：
     </span>
-    <a
-      target="_blank"
-      href="https://github.com/xizeyoupan/magic-wand"
-    >
+    <a target="_blank" href="https://github.com/xizeyoupan/magic-wand">
       <img src="https://img.shields.io/badge/xizeyoupan-magic--wand-brightgreen">
     </a>
   </p>
-  <p>编译时间：{{ device_info.compile_time }}</p>
-  <p>IDF版本： {{ device_info.idf_version }}</p>
-  <p>芯片封装： {{ computed_data.package_version_str }}</p>
+  <p>编译时间：{{ default_store.device_info.compile_time }}</p>
+  <p>IDF版本： {{ default_store.device_info.idf_version }}</p>
+  <p>芯片封装： {{ default_store.computed_data.package_version_str }}</p>
   <p>
     芯片版本：
-    <a
-      target="_blank"
-      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${computed_data.chip_version_str.slice(1).replace('.', '-')}.html`"
-    >
-      {{ computed_data.chip_version_str }}
+    <a target="_blank"
+      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${default_store.computed_data.chip_version_str.slice(1).replace('.', '-')}.html`">
+      {{ default_store.computed_data.chip_version_str }}
     </a>
   </p>
-  <p>CPU频率： {{ computed_data.cpu_freq_str }}</p>
+  <p>CPU频率： {{ default_store.computed_data.cpu_freq_str }}</p>
   <p>
     web版本：
-    <a
-      target="_blank"
-      :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`"
-    >
+    <a target="_blank" :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`">
       {{ web_version }}
     </a>
   </p>

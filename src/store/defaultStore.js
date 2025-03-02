@@ -13,7 +13,7 @@ const chipVersions = [
   "ESP32D0WDR2V3"
 ]
 
-export const useDefaultStore = defineStore('device', () => {
+export const useDefaultStore = defineStore('default', () => {
 
   const imu_data = reactive({
     roll: 0,
@@ -39,25 +39,25 @@ export const useDefaultStore = defineStore('device', () => {
   })
 
   const device_info = reactive({
-    dev_mode: ref(false),
-    compile_time: ref(""),
-    firmware_version: ref(""),
-    idf_version: ref(""),
-    git_commit_id: ref(""),
-    package_version: ref(""),
-    chip_version: ref(""),
+    dev_mode: false,
+    compile_time: "",
+    firmware_version: "",
+    idf_version: "",
+    git_commit_id: "",
+    package_version: "",
+    chip_version: "",
     cpu_freq: 0,
   })
 
   const stat_data = reactive({
-    task_list: ref([]),
+    task_list: [],
     total_free_bytes: 0,
     ws_bytes_available: 0,
     minimum_free_bytes: 0,
     largest_free_block: 0,
     total_allocated_bytes: 0,
-    task_list_order_column: ref("task_number"),
-    task_list_order: ref(true),
+    task_list_order_column: "task_number",
+    task_list_order: true,
   })
 
   const computed_data = reactive({
@@ -91,11 +91,11 @@ export const useDefaultStore = defineStore('device', () => {
   }
 
   const user_config = reactive({
-    ws2812_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
-    mpu_sda_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
-    mpu_scl_gpio_num: reactive({ data: ref(-1), display: true, type: 'number' }),
-    enable_imu_det: reactive({ data: 0, display: false, type: 'number' }),
-    enable_ws_log: reactive({ data: 0, display: true, type: 'number' }),
+    ws2812_gpio_num: { data: -1, display: true, type: 'number' },
+    mpu_sda_gpio_num: { data: -1, display: true, type: 'number' },
+    mpu_scl_gpio_num: { data: -1, display: true, type: 'number' },
+    enable_imu_det: { data: 0, display: false, type: 'number' },
+    enable_ws_log: { data: 0, display: true, type: 'number' },
   })
 
   const log_text_list = ref([])

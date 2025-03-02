@@ -2,16 +2,10 @@
 import { ref, h, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NDataTable } from "naive-ui"
-import { useDefaultStore } from '../store/device.js'
+import { useDefaultStore } from '../store/defaultStore.js'
 
 const message = useMessage()
-const device = useDefaultStore()
-const {
-  wifi_info,
-  device_info,
-  computed_data,
-  stat_data
-} = storeToRefs(device)
+const default_store = useDefaultStore()
 
 const state_to_str = [
   'eRunning',
@@ -94,28 +88,23 @@ const rowKey = (row) => row.task_number
     </h2>
     <div>
       <span class="label">已用内存：</span>
-      <span class="label">{{ stat_data.total_allocated_bytes }}</span>
-      <span>{{ computed_data.used_men_percent }}%</span>
+      <span class="label">{{ default_store.stat_data.total_allocated_bytes }}</span>
+      <span>{{ default_store.computed_data.used_men_percent }}%</span>
     </div>
     <div>
       <span class="label">剩余内存：</span>
-      <span class="label">{{ stat_data.total_free_bytes }}</span>
-      <span>{{ computed_data.free_men_percent }}%</span>
+      <span class="label">{{ default_store.stat_data.total_free_bytes }}</span>
+      <span>{{ default_store.computed_data.free_men_percent }}%</span>
     </div>
-    <div><span class="label">最大剩余块：</span>{{ stat_data.largest_free_block }}</div>
-    <div><span class="label">迄今最小剩余内存：</span>{{ stat_data.minimum_free_bytes }}</div>
+    <div><span class="label">最大剩余块：</span>{{ default_store.stat_data.largest_free_block }}</div>
+    <div><span class="label">迄今最小剩余内存：</span>{{ default_store.stat_data.minimum_free_bytes }}</div>
     <!-- <div><span class="label">ws buffer 剩余容量：</span>{{ stat_data.ws_bytes_available }}</div> -->
 
     <h2>
       <span>任务信息</span>
     </h2>
-    <n-data-table
-      ref="stat-table"
-      size="small"
-      :columns="columns"
-      :data="stat_data.task_list"
-      :row-key="rowKey"
-    />
+    <n-data-table ref="stat-table" size="small" :columns="columns" :data="default_store.stat_data.task_list"
+      :row-key="rowKey" />
   </div>
 </template>
 

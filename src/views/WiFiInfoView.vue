@@ -1,21 +1,20 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, toRaw } from 'vue'
 import { useMessage } from "naive-ui"
 import { storeToRefs } from 'pinia'
-import { useDefaultStore } from '../store/device.js'
+import { useDefaultStore } from '../store/defaultStore.js'
 import { api } from '../api.js'
 import { check_not_oline } from '../util.js'
 import { get, set } from 'idb-keyval'
 
 import { NList, NListItem, NButton, NFlex, NPopover, NModal, NInput, NDivider } from "naive-ui"
 
-const device = useDefaultStore()
-const { wifi_info } = storeToRefs(device)
+const default_store = useDefaultStore()
 
 const wifi_lsit = ref([])
 const message = useMessage()
 const wifi_list_item_info = reactive({})
-const manuf = reactive({ data: ref(null) })
+const manuf = reactive({ data: null })
 
 const wifiAuthModes = [
   "OPEN",
@@ -47,12 +46,12 @@ const selected_ssid = ref('')
 const selected_password = ref('')
 
 const get_wifi_list = async () => {
-  if (check_not_oline(device, message)) return
+  if (check_not_oline(default_store, message)) return
 
   let messageReactive
   try {
     messageReactive = message.loading("正在扫描", { duration: 20000 })
-    let resp = await api.get(wifi_info.value.host + '/wifi_list', { timeout: 20000 })
+    let resp = await api.get(default_store.wifi_info.host + '/wifi_list', { timeout: 20000 })
     resp = await resp.json()
     wifi_lsit.value = resp.wifi_lsit
   } catch (error) {
@@ -80,7 +79,7 @@ const connect_ap = async () => {
   })
 
   try {
-    let resp = await api.post(wifi_info.value.host + '/connect_ap', { timeout: 5000, body: data })
+    let resp = await api.post(default_store.wifi_info.host + '/connect_ap', { timeout: 5000, body: data })
     message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
   } catch (error) {
     console.error(error)
@@ -93,7 +92,7 @@ const get_wifi_info = async () => {
 
   try {
     messageReactive = message.loading("正在刷新", { duration: 2000 })
-    let resp = await api.get(wifi_info.value.host + '/wifi_info')
+    let resp = await api.get(default_store.wifi_info.host + '/wifi_info')
     resp = await resp.json()
     Object.assign(wifi_list_item_info, resp)
   } catch (error) {
@@ -126,12 +125,7 @@ await get_wifi_info()
 <template>
   <n-flex justify="space-between">
     <h2>当前连接信息</h2>
-    <n-button
-      strong
-      secondary
-      type="primary"
-      @click="get_wifi_info"
-    >
+    <n-button strong secondary type="primary" @click="get_wifi_info">
       刷新
     </n-button>
   </n-flex>
@@ -159,37 +153,16 @@ await get_wifi_info()
   <n-divider />
   <h2>WiFi列表</h2>
 
-  <n-modal
-    v-model:show="showModal"
-    class="custom-card"
-    preset="card"
-    title="连接WiFi"
-    size="huge"
-    :bordered="true"
-  >
-    <n-flex
-      vertical
-      size="large"
-    >
+  <n-modal v-model:show="showModal" class="custom-card" preset="card" title="连接WiFi" size="huge" :bordered="true">
+    <n-flex vertical size="large">
       <n-flex>
         <div>SSID：</div>
-        <n-input
-          v-model:value="selected_ssid"
-          type="text"
-          placeholder="输入WiFi名称"
-        />
+        <n-input v-model:value="selected_ssid" type="text" placeholder="输入WiFi名称" />
         <div>PASSWORD：</div>
-        <n-input
-          v-model:value="selected_password"
-          type="text"
-          placeholder="输入WiFi密码"
-        />
+        <n-input v-model:value="selected_password" type="text" placeholder="输入WiFi密码" />
       </n-flex>
 
-      <n-popover
-        trigger="hover"
-        placement="bottom"
-      >
+      <n-popover trigger="hover" placement="bottom">
         <template #trigger>
           <n-button @click="connect_ap">
             连接
@@ -204,21 +177,13 @@ await get_wifi_info()
     <template #header>
       <n-flex justify="space-between">
         <div>数量：{{ wifi_lsit.length }}</div>
-        <n-button
-          strong
-          secondary
-          type="primary"
-          @click="get_wifi_list"
-        >
+        <n-button strong secondary type="primary" @click="get_wifi_list">
           刷新
         </n-button>
       </n-flex>
     </template>
 
-    <n-list-item
-      v-for="(wifi, index) in wifi_lsit"
-      :key="index"
-    >
+    <n-list-item v-for="(wifi, index) in wifi_lsit" :key="index">
       <div class="wifi-info">
         <div><span class="label">SSID:</span>{{ wifi.SSID || `隐藏的WiFi` }}</div>
         <div><span class="label">RSSI:</span>{{ wifi.RSSI }} dBm</div>
@@ -237,13 +202,11 @@ await get_wifi_info()
         </div>
       </div>
       <template #suffix>
-        <n-button
-          @click="() => {
-            showModal = true
-            selected_ssid = wifi.SSID
-            selected_password = ''
-          }"
-        >
+        <n-button @click="() => {
+          showModal = true
+          selected_ssid = wifi.SSID
+          selected_password = ''
+        }">
           连接
         </n-button>
       </template>

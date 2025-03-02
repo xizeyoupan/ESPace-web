@@ -2,13 +2,11 @@
 import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
-import { useDefaultStore } from '../store/device.js'
+import { useDefaultStore } from '../store/defaultStore.js'
 import { get } from 'idb-keyval'
 
 const message = useMessage()
-const device = useDefaultStore()
-
-const { wifi_info, device_info, computed_data, wsmgr, dataset_data_view } = storeToRefs(device)
+const default_store = useDefaultStore()
 
 const nav = ref("")
 const model_loading_method = ref(null)
@@ -18,31 +16,30 @@ const checked_model_type_id = ref(null)
 
 const new_dataset = reactive(
   {
-    id: ref(""),
-    desc: ref(""),
-    type: ref(null),
-    sample_tick: ref(null), //采样间隔
-    sample_size: ref(null), //采样数量
+    id: "",
+    desc: "",
+    type: null,
+    sample_tick: null, //采样间隔
+    sample_size: null, //采样数量
     protion: {
       train: 3,
       validation: 1,
       test: 1
     },
-    item_types: ref([]),
-    items: ref([]),
+    item_types: [],
+    items: [],
   }
 )
 
 watch(
-  () => dataset_data_view.value,
+  () => default_store.dataset_data_view,
   (newVal, oldVal) => {
-    // console.log("dataset_data_view changed: ", newVal)
 
     if (checked_model_type_id.value === null) {
       return
     }
 
-    let dataset_size = dataset_data_view.value.getUint32(1, true)
+    let dataset_size = default_store.dataset_data_view.getUint32(1, true)
     let ax = []
     let ay = []
     let az = []
@@ -50,12 +47,12 @@ watch(
     let gy = []
     let gz = []
     for (let i = 0; i < dataset_size; i++) {
-      ax.push(dataset_data_view.value.getFloat32(5 + (0 * dataset_size + i) * 4, true))
-      ay.push(dataset_data_view.value.getFloat32(5 + (1 * dataset_size + i) * 4, true))
-      az.push(dataset_data_view.value.getFloat32(5 + (2 * dataset_size + i) * 4, true))
-      gx.push(dataset_data_view.value.getFloat32(5 + (3 * dataset_size + i) * 4, true))
-      gy.push(dataset_data_view.value.getFloat32(5 + (4 * dataset_size + i) * 4, true))
-      gz.push(dataset_data_view.value.getFloat32(5 + (5 * dataset_size + i) * 4, true))
+      ax.push(default_store.dataset_data_view.getFloat32(5 + (0 * dataset_size + i) * 4, true))
+      ay.push(default_store.dataset_data_view.getFloat32(5 + (1 * dataset_size + i) * 4, true))
+      az.push(default_store.dataset_data_view.getFloat32(5 + (2 * dataset_size + i) * 4, true))
+      gx.push(default_store.dataset_data_view.getFloat32(5 + (3 * dataset_size + i) * 4, true))
+      gy.push(default_store.dataset_data_view.getFloat32(5 + (4 * dataset_size + i) * 4, true))
+      gz.push(default_store.dataset_data_view.getFloat32(5 + (5 * dataset_size + i) * 4, true))
     }
 
     let train_num = 0
@@ -127,7 +124,7 @@ const update_record_ready = (state) => {
   }
 
   if (state) {
-    wsmgr.value.instance.ready_to_scan_imu_data(new_dataset)
+    default_store.wsmgr.ready_to_scan_imu_data(new_dataset)
   }
   record_ready.value = state
 }
