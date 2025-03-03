@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch } from "naive-ui"
+import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch, NGrid, NGridItem } from "naive-ui"
 import { useDefaultStore } from '../store/defaultStore.js'
 import { get } from 'idb-keyval'
+import { load_data } from '../cnn.js'
 
 const message = useMessage()
 const default_store = useDefaultStore()
@@ -38,6 +39,7 @@ watch(
     if (checked_model_type_id.value === null) {
       return
     }
+    // TODO: switch
 
     let dataset_size = default_store.dataset_data_view.getUint32(1, true)
     let ax = []
@@ -287,12 +289,8 @@ const handleModelUpdateValue = (value, option) => {
 
 const menuOptions = [
   {
-    label: "导入模型",
-    key: "load_model",
-  },
-  {
-    label: "新建模型",
-    key: "new_model",
+    label: "模型",
+    key: "model",
   },
   {
     label: "数据集",
@@ -393,7 +391,33 @@ const handle_type_row_check = (keys, rows, meta) => {
 }
 
 const load_dataset = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json' // 只允许 JSON 文件
+  input.style.display = 'none' // 隐藏 input
 
+  // 监听文件选择
+  input.addEventListener('change', function (event) {
+    const file = event.target.files[0] // 获取用户选择的文件
+    if (!file) return
+
+    const reader = new FileReader()
+
+    reader.onload = function (e) {
+      try {
+        const jsonData = JSON.parse(e.target.result) // 解析 JSON
+        console.log('JSON 数据:', jsonData)
+        Object.assign(new_dataset, jsonData)
+      } catch (error) {
+        console.error('JSON 解析失败:', error)
+      }
+    };
+
+    reader.readAsText(file) // 以文本方式读取文件
+  })
+
+  // 触发文件选择
+  input.click()
 }
 
 const save_dataset = () => {
@@ -417,6 +441,13 @@ const save_dataset = () => {
 
   // 触发点击事件，下载文件
   link.click()
+}
+
+const train_model = async () => {
+  await load_data(new_dataset)
+}
+
+const predict = () => {
 
 }
 
@@ -432,105 +463,135 @@ const save_dataset = () => {
       <p>点按上方导航按钮以开始。</p>
     </div>
 
-    <div v-else-if="nav === `load_model`">
-      <n-flex align="center">
-        <n-select v-model:value="model_loading_method" placeholder="选择载入方式" style="width: 20%;"
-          :options="model_loading_options" />
-        <n-select v-model:value="model_id" placeholder="选择模型" style="width: 20%;" :options="mode_list"
-          @update:value="handleModelUpdateValue" />
-      </n-flex>
+    <div v-else-if="nav === `model`">
+      <n-grid y-gap="12" x-gap="12" :cols="2">
+
+        <n-grid-item>
+          <n-flex align="center">
+            <span>数据集名称</span>
+            <n-input v-model:value="new_dataset.id" type="text" placeholder="请前往数据集选项" disabled
+              style="max-width: 50%;" />
+          </n-flex>
+        </n-grid-item>
+
+        <n-grid-item>
+          <n-flex align="center">
+            <n-button strong secondary type="info" @click="train_model">
+              训练
+            </n-button>
+            <n-button strong secondary type="success" @click="predict">
+              预测
+            </n-button>
+          </n-flex>
+        </n-grid-item>
+
+      </n-grid>
     </div>
 
-    <div v-else-if="nav === `new_model`">
-      <n-flex align="center">
-        <n-select v-model:value="model_loading_method" placeholder="选择模型类型" style="width: 20%;"
-          :options="model_loading_options" />
-        <n-select v-model:value="model_id" placeholder="选择模型" style="width: 20%;" :options="mode_list"
-          @update:value="handleModelUpdateValue" />
-      </n-flex>
-    </div>
+
 
     <div v-else-if="nav === `new_dataset`">
-      <n-flex vertical style="gap: 20px;">
+      <n-grid y-gap="12" x-gap="12" :cols="2">
+        <n-grid-item>
+          <n-flex align="center">
+            <span>模型名称</span>
+            <n-input v-model:value="new_dataset.id" type="text" placeholder="模型的id" style="max-width: 50%;" />
+          </n-flex>
+        </n-grid-item>
 
-        <n-flex align="center">
-          <span>模型名称</span>
-          <n-input v-model:value="new_dataset.id" type="text" placeholder="模型的id" style="width: 20%;" />
-          <span>模型简介</span>
-          <n-input v-model:value="new_dataset.desc" type="text" placeholder="模型的介绍" style="width: 60%;" />
-          <span>模型类别</span>
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;"
-                :options="mode_type_list" @update:value="(value) => { record_ready = false }" />
-            </template>
-            <template v-if="new_dataset.type != null">
-              {{ mode_type_list[new_dataset.type].desc }}
-            </template>
-          </n-popover>
+        <n-grid-item>
+          <n-flex align="center">
+            <n-button strong secondary type="info" @click="load_dataset">
+              导入
+            </n-button>
+            <n-button strong secondary type="success" @click="save_dataset">
+              保存
+            </n-button>
+          </n-flex>
+        </n-grid-item>
 
-          <n-button strong secondary type="info" @click="load_dataset">
-            导入
-          </n-button>
-          <n-button strong secondary type="success" @click="save_dataset">
-            保存
-          </n-button>
-        </n-flex>
+        <n-grid-item>
+          <n-flex align="center">
+            <span>模型简介</span>
+            <n-input v-model:value="new_dataset.desc" type="text" placeholder="模型的介绍" style="max-width: 60%;" />
+          </n-flex>
+        </n-grid-item>
 
-        <n-flex align="center">
-          <span>采样间隔</span>
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input-number v-model:value="new_dataset.sample_tick" style="width: 30%;" clearable
-                placeholder="请输入采样间隔(ms)" :min="1" @update:value="(value) => { record_ready = false }" />
-            </template>
-            每隔几毫秒进行一次采样
-          </n-popover>
-        </n-flex>
+        <n-grid-item>
+          <n-flex align="center">
+            <span>模型类别</span>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;"
+                  :options="mode_type_list" @update:value="(value) => { record_ready = false }" />
+              </template>
+              <template v-if="new_dataset.type != null">
+                {{ mode_type_list[new_dataset.type].desc }}
+              </template>
+            </n-popover>
+          </n-flex>
+        </n-grid-item>
 
-        <n-flex align="center">
-          <span>采样数量</span>
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input-number v-model:value="new_dataset.sample_size" style="width: 30%;" clearable
-                placeholder="请输入数据数量" :min="10" :max="500" @update:value="(value) => { record_ready = false }" />
-            </template>
-            对于指令模型，如果一个周期内实际采样的点数与该值不一致，则会超采或降采样到这个值；对于连续模型，这个值就是一次推理采样到的数量。
-          </n-popover>
+        <n-grid-item>
+          <n-flex align="center">
+            <span>采样间隔</span>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input-number v-model:value="new_dataset.sample_tick" style="width: 30%;" clearable
+                  placeholder="请输入采样间隔(ms)" :min="1" @update:value="(value) => { record_ready = false }" />
+              </template>
+              每隔几毫秒进行一次采样
+            </n-popover>
+          </n-flex>
+        </n-grid-item>
 
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input style="width: 30%;" disabled
-                :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'" />
-            </template>
-            单次采样等效时长
-          </n-popover>
-        </n-flex>
+        <n-grid-item>
+          <n-flex align="center">
+            <span>采样数量</span>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input-number v-model:value="new_dataset.sample_size" style="width: 30%;" clearable
+                  placeholder="请输入数据数量" :min="10" :max="500" @update:value="(value) => { record_ready = false }" />
+              </template>
+              对于指令模型，如果一个周期内实际采样的点数与该值不一致，则会超采或降采样到这个值；对于连续模型，这个值就是一次推理采样到的数量。
+            </n-popover>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input style="width: 30%;" disabled
+                  :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'" />
+              </template>
+              单次采样等效时长
+            </n-popover>
+          </n-flex>
+        </n-grid-item>
 
-        <n-flex align="center">
-          <span>训练集、验证集、测试集相对比例</span>
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input-number v-model:value="new_dataset.protion.train" style="width: 20%;" />
-            </template>
-            train
-          </n-popover>
+        <n-grid-item>
+          <n-flex align="center">
+            <span>训练集、验证集、测试集相对比例</span>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input-number v-model:value="new_dataset.protion.train" style="width: 20%;" />
+              </template>
+              train
+            </n-popover>
 
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input-number v-model:value="new_dataset.protion.validation" style="width: 20%;" />
-            </template>
-            validation
-          </n-popover>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input-number v-model:value="new_dataset.protion.validation" style="width: 20%;" />
+              </template>
+              validation
+            </n-popover>
 
-          <n-popover trigger="hover" placement="bottom">
-            <template #trigger>
-              <n-input-number v-model:value="new_dataset.protion.test" style="width: 20%;" />
-            </template>
-            test
-          </n-popover>
-        </n-flex>
-      </n-flex>
+            <n-popover trigger="hover" placement="bottom">
+              <template #trigger>
+                <n-input-number v-model:value="new_dataset.protion.test" style="width: 20%;" />
+              </template>
+              test
+            </n-popover>
+          </n-flex>
+        </n-grid-item>
+
+      </n-grid>
 
       <n-split direction="horizontal" style="margin-top: 20px;">
         <template #1>
