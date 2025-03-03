@@ -61,7 +61,7 @@ const trigger_egg = async () => {
 
 await Promise.race(
   [
-    sleep_ms(1500),
+    sleep_ms(500),
     (async () => {
       while (!default_store.wifi_info.isOnline) {
         await sleep_ms(10)

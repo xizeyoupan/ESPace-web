@@ -68,7 +68,9 @@ function init() {
 
 onUnmounted(() => {
   default_store.user_config.enable_imu_det.data = 0
-  default_store.wsmgr.commit_config()
+  if (default_store.wsmgr.commit_config) {
+    default_store.wsmgr.commit_config()
+  }
 })
 
 onMounted(() => {

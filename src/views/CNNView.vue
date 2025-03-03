@@ -486,6 +486,9 @@ const predict = () => {
         </n-grid-item>
 
       </n-grid>
+
+      <n-input v-model:value="default_store.model_code" type="textarea" placeholder="基本的 Textarea"
+        :input-props="{ spellcheck: false }" />
     </div>
 
 

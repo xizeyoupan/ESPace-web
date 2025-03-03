@@ -1,4 +1,11 @@
 import * as tf from "@tensorflow/tfjs"
+import * as tfvis from '@tensorflow/tfjs-vis'
+
+import { useDefaultStore } from './store/defaultStore.js'
+import { reactive, ref, toRef, toRefs, toRaw } from 'vue'
+import pinia from './store/index.js'
+
+const default_store = useDefaultStore(pinia)
 
 let X_train = []   // 训练集输入数据 (shape: [train_size, sample_size, 6])
 let Y_train = []   // 训练集标签 (shape: [train_size, 1])
@@ -10,8 +17,17 @@ let X_test = []   // 测试集输入数据 (shape: [test_size, sample_size, 6])
 let Y_test = []  // 测试集标签 (shape: [test_size, 1])
 
 let model
+let trainModel
+
+const metrics = ['loss', 'acc', 'val_loss', 'val_acc']
+let container = { name: 'Model Training', tab: 'Training' }
 
 export const load_data = async (dataset) => {
+    const visorInstance = tfvis.visor()
+    if (!visorInstance.isOpen()) {
+        visorInstance.toggle()
+    }
+
     console.log(dataset)
 
     X_train = []
@@ -78,60 +94,10 @@ export const load_data = async (dataset) => {
     X_test = X_test.transpose([0, 2, 1])
     Y_test = tf.tensor2d(Y_test, [Y_test.length, 1])
 
-    model = tf.sequential()
+    console.log(default_store.model_code)
+    container = { name: 'Model Training', tab: 'Training' }
 
-    // 添加第一个 1D 卷积层
-    model.add(tf.layers.conv1d({
-        inputShape: [dataset.sample_size, 6],  // 输入数据的形状
-        filters: 18,  // 卷积核的数量
-        kernelSize: 3,  // 卷积核的大小
-        activation: 'relu',  // 激活函数
-    }))
-
-    // 添加池化层
-    model.add(tf.layers.maxPooling1d({
-        poolSize: 2,  // 池化窗口大小
-    }))
-
-    // 添加第二个卷积层
-    model.add(tf.layers.conv1d({
-        filters: 36,  // 卷积核数量
-        kernelSize: 3,
-        activation: 'relu',
-    }))
-
-    // 添加池化层
-    model.add(tf.layers.maxPooling1d({
-        poolSize: 2,
-    }))
-
-    // 扁平化层，将 2D 输出转为 1D
-    model.add(tf.layers.flatten());
-
-    // 添加全连接层
-    model.add(tf.layers.dense({
-        units: 512,  // 隐藏层的神经元数
-        activation: 'relu',
-    }))
-
-    // 添加全连接层
-    model.add(tf.layers.dense({
-        units: 128,  // 隐藏层的神经元数
-        activation: 'relu',
-    }))
-
-    // 输出层（3个神经元，代表三分类）
-    model.add(tf.layers.dense({
-        units: 3,  // 三分类
-        activation: 'softmax',  // 使用 softmax 激活函数
-    }))
-
-    // 编译模型
-    model.compile({
-        optimizer: tf.train.adam(0.0001),
-        loss: 'sparseCategoricalCrossentropy',
-        metrics: ['accuracy'],
-    })
+    eval(default_store.model_code)
 
     await trainModel()
     console.log("训练完成！")
@@ -140,21 +106,27 @@ export const load_data = async (dataset) => {
     console.log(`测试集损失: ${result[0]}`)
     console.log(`测试集准确率: ${result[1]}`)
     console.log(model.optimizer)
-}
 
-const printCallback = {
-    onEpochEnd: async (epoch, logs) => {
-        console.log(`Epoch ${epoch + 1}: `);
-        console.log(`train_loss = ${logs.loss}, train_accuracy = ${logs.acc}`);
-        console.log(`val_loss = ${logs.val_loss}, val_accuracy = ${logs.val_acc}`);
+    const preds = model.predict(X_test).argMax(-1); // 获取最大概率的类别索引
+    const labels = tf.tensor1d(await Y_test.data()) // 真实标签
+    console.log(labels)
+
+    const classNames = dataset.item_types.map(item => item.comment)
+    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);
+    container = {
+        name: 'Accuracy',
+        tab: 'Evaluation'
+    };
+    tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
+
+    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
+    container = {
+        name: 'Confusion Matrix',
+        tab: 'Evaluation'
     }
-}
-
-async function trainModel() {
-    await model.fit(X_train, Y_train, {
-        callbacks: [printCallback],
-        // batchSize: 10,
-        epochs: 20,  // 设置训练轮数
-        validationData: [X_val, Y_val],  // 使用验证集进行验证
+    tfvis.render.confusionMatrix(container, {
+        values: confusionMatrix,
+        tickLabels: classNames
     })
+    labels.dispose()
 }

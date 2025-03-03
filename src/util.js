@@ -7,7 +7,6 @@ import pinia from './store/index.js'
 
 const ansi_up = new AnsiUp()
 const default_store = useDefaultStore(pinia)
-const { wifi_info, device_info, computed_data, log_text_list, user_config } = storeToRefs(default_store)
 
 
 const FETCHED_USER_CONFIG_DATA_PREFIX = 0x00
@@ -295,7 +294,7 @@ export const connect_device = async (message) => {
     if (default_store.wsmgr.get_config) {
       default_store.wsmgr.del()
     }
-    default_store.wsmgr = new WebSocketManager(`ws://${wifi_info.value.host.slice(7)}/ws`)
+    default_store.wsmgr = new WebSocketManager(`ws://${default_store.wifi_info.host.slice(7)}/ws`)
   } catch (error) {
     console.warn(error)
   } finally {
