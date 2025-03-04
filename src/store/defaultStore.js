@@ -101,8 +101,6 @@ export const useDefaultStore = defineStore('default', () => {
   const log_text_list = ref([])
   const dataset_data_view = ref(null)
   const model_code = ref(`
-      model = tf.sequential()
-
       // 添加第一个 1D 卷积层
       model.add(tf.layers.conv1d({
           inputShape: [dataset.sample_size, 6],  // 输入数据的形状

@@ -97,6 +97,7 @@ export const load_data = async (dataset) => {
     console.log(default_store.model_code)
     container = { name: 'Model Training', tab: 'Training' }
 
+    model = tf.sequential()
     eval(default_store.model_code)
 
     await trainModel()
