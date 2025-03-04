@@ -20,15 +20,18 @@ let model
 let trainModel
 
 // const metrics = ['loss', 'acc', 'val_loss', 'val_acc']
-let container = { name: 'Model Training', tab: 'Training' }
+let container
+
+const visorInstance = tfvis.visor()
+if (visorInstance.isOpen()) {
+    visorInstance.toggle()
+}
+
+export const toggle_visor = () => {
+    visorInstance.toggle()
+}
 
 export const load_data = async (dataset) => {
-    const visorInstance = tfvis.visor()
-    if (!visorInstance.isOpen()) {
-        visorInstance.toggle()
-    }
-
-    console.log(dataset)
 
     X_train = []
     Y_train = []
@@ -94,30 +97,29 @@ export const load_data = async (dataset) => {
     X_test = X_test.transpose([0, 2, 1])
     Y_test = tf.tensor2d(Y_test, [Y_test.length, 1])
 
-    console.log(default_store.model_code)
-    container = { name: 'Model Training', tab: 'Training' }
+}
 
+export const train = async (message, dataset) => {
+    await load_data(dataset)
+
+    container = { name: 'Model Training', tab: 'Training' }
     model = tf.sequential()
     eval(default_store.model_code)
 
     await trainModel()
-    console.log("训练完成！")
+    message.success("训练完成")
 
     const result = model.evaluate(X_test, Y_test)
-    console.log(`测试集损失: ${result[0]}`)
-    console.log(`测试集准确率: ${result[1]}`)
-    console.log(model.optimizer)
 
-    const preds = model.predict(X_test).argMax(-1); // 获取最大概率的类别索引
+    const preds = model.predict(X_test).argMax(-1) // 获取最大概率的类别索引
     const labels = tf.tensor1d(await Y_test.data()) // 真实标签
-    console.log(labels)
 
     const classNames = dataset.item_types.map(item => item.comment)
-    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);
+    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds)
     container = {
         name: 'Accuracy',
         tab: 'Evaluation'
-    };
+    }
     tfvis.show.perClassAccuracy(container, classAccuracy, classNames)
 
     const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds)
@@ -129,5 +131,13 @@ export const load_data = async (dataset) => {
         values: confusionMatrix,
         tickLabels: classNames
     })
+
     labels.dispose()
+    preds.dispose()
+
+    return result
+}
+
+export const save_model = async () => {
+    await model.save('downloads://my-model')
 }

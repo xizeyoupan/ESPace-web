@@ -216,54 +216,54 @@ onMounted(() => {
 
 function update_data(values) {
   switch (values[0]) {
-    case 'METER':
-      // console.log("gauge1=" + Object.keys(gauge1.options))
-      // console.log("gauge1.options.units=" + gauge1.options.units)
-      console.log("METER values[1]=" + values[1])
-      console.log("METER values[2]=" + values[2])
-      console.log("METER values[3]=" + values[3])
-      if (values[1] != "") {
-        gauge1.options.units = values[1]
-        document.getElementById("canvas1").style.display = "inline-block"
-        meter1 = 1
-      }
-      if (values[2] != "") {
-        gauge2.options.units = values[2]
-        document.getElementById("canvas2").style.display = "inline-block"
-        meter2 = 1
-      }
-      if (values[3] != "") {
-        gauge3.options.units = values[3]
-        document.getElementById("canvas3").style.display = "inline-block"
-        meter3 = 1
-      }
-      gauge1.update()
-      gauge2.update()
-      gauge3.update()
-      break
-    case 'DATA':
-      // console.log("DATA values[1]=" + values[1])
-      var val1 = parseFloat(values[1])
-      gauge1.value = val1
-      gauge1.update({ valueText: val1.toFixed(1) })
-      roll = val1 * deg2rad
-      if (meter2) {
-        // console.log("DATA values[2]=" + values[2])
-        var val2 = parseFloat(values[2])
-        gauge2.value = val2
-        gauge2.update({ valueText: val2.toFixed(1) })
-        pitch = val2 * deg2rad
-      }
-      if (meter3) {
-        // console.log("DATA values[3]=" + values[3])
-        var val3 = parseFloat(values[3])
-        gauge3.value = val3
-        gauge3.update({ valueText: val3.toFixed(1) })
-        yaw = val3 * deg2rad * -1.0
-      }
-      break
-    default:
-      break
+  case 'METER':
+    // console.log("gauge1=" + Object.keys(gauge1.options))
+    // console.log("gauge1.options.units=" + gauge1.options.units)
+    console.log("METER values[1]=" + values[1])
+    console.log("METER values[2]=" + values[2])
+    console.log("METER values[3]=" + values[3])
+    if (values[1] != "") {
+      gauge1.options.units = values[1]
+      document.getElementById("canvas1").style.display = "inline-block"
+      meter1 = 1
+    }
+    if (values[2] != "") {
+      gauge2.options.units = values[2]
+      document.getElementById("canvas2").style.display = "inline-block"
+      meter2 = 1
+    }
+    if (values[3] != "") {
+      gauge3.options.units = values[3]
+      document.getElementById("canvas3").style.display = "inline-block"
+      meter3 = 1
+    }
+    gauge1.update()
+    gauge2.update()
+    gauge3.update()
+    break
+  case 'DATA':
+    // console.log("DATA values[1]=" + values[1])
+    var val1 = parseFloat(values[1])
+    gauge1.value = val1
+    gauge1.update({ valueText: val1.toFixed(1) })
+    roll = val1 * deg2rad
+    if (meter2) {
+      // console.log("DATA values[2]=" + values[2])
+      var val2 = parseFloat(values[2])
+      gauge2.value = val2
+      gauge2.update({ valueText: val2.toFixed(1) })
+      pitch = val2 * deg2rad
+    }
+    if (meter3) {
+      // console.log("DATA values[3]=" + values[3])
+      var val3 = parseFloat(values[3])
+      gauge3.value = val3
+      gauge3.update({ valueText: val3.toFixed(1) })
+      yaw = val3 * deg2rad * -1.0
+    }
+    break
+  default:
+    break
   }
 }
 
@@ -287,12 +287,19 @@ const reset_imu = () => {
   <div id="can">
     <div style="display: flex; align-items: center;">
       <span>启用：</span>
-      <n-switch :value="Boolean(default_store.user_config.enable_imu_det.data)" @update:value="(v) => {
-        default_store.user_config.enable_imu_det.data = Number(v)
-        default_store.wsmgr.commit_config()
-      }" />
+      <n-switch
+        :value="Boolean(default_store.user_config.enable_imu_det.data)"
+        @update:value="(v) => {
+          default_store.user_config.enable_imu_det.data = Number(v)
+          default_store.wsmgr.commit_config()
+        }"
+      />
       <div style="width: 50px;" />
-      <n-button type="info" round @click="reset_imu">
+      <n-button
+        type="info"
+        round
+        @click="reset_imu"
+      >
         重置
       </n-button>
     </div>
@@ -301,7 +308,10 @@ const reset_imu = () => {
         <span>
           Base demo：
         </span>
-        <a target="_blank" href="https://github.com/nopnop2002/esp-idf-mpu6050-dmp">
+        <a
+          target="_blank"
+          href="https://github.com/nopnop2002/esp-idf-mpu6050-dmp"
+        >
           <img src="https://img.shields.io/badge/nopnop2002-esp--idf--mpu6050--dmp-brightgreen">
         </a>
       </span>
@@ -310,7 +320,11 @@ const reset_imu = () => {
       accel: gravitational acceleration, gyro: degrees per second
     </div>
 
-    <n-grid cols="6" x-gap="12" style="justify-items: center;">
+    <n-grid
+      cols="6"
+      x-gap="12"
+      style="justify-items: center;"
+    >
       <n-grid-item>
         <div><span>ax:</span><span>{{ default_store.imu_data.ax.toFixed(2) }}</span></div>
       </n-grid-item>

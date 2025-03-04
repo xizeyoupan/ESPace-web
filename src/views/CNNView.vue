@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch, NGrid, NGridItem } from "naive-ui"
+import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch, NGrid, NGridItem, NCollapseItem, NCollapse } from "naive-ui"
 import { useDefaultStore } from '../store/defaultStore.js'
 import { get } from 'idb-keyval'
-import { load_data } from '../cnn.js'
+import { toggle_visor, train, save_model } from '../cnn.js'
 
 const message = useMessage()
 const default_store = useDefaultStore()
@@ -444,7 +444,7 @@ const save_dataset = () => {
 }
 
 const train_model = async () => {
-  await load_data(new_dataset)
+  await train(message, new_dataset)
 }
 
 const predict = () => {
@@ -482,13 +482,27 @@ const predict = () => {
             <n-button strong secondary type="success" @click="predict">
               预测
             </n-button>
+            <n-button strong secondary type="info" @click="toggle_visor">
+              数据面板
+            </n-button>
+            <n-button strong secondary type="info" @click="save_model">
+              保存
+            </n-button>
           </n-flex>
         </n-grid-item>
 
       </n-grid>
 
-      <n-input v-model:value="default_store.model_code" type="textarea" placeholder="基本的 Textarea"
-        :input-props="{ spellcheck: false }" />
+      <div style="margin:20px 20px 20px 0; ">
+        <n-collapse>
+          <n-collapse-item title="模型及训练代码" name="code">
+            <n-input v-model:value="default_store.model_code" type="textarea" placeholder="基本的 Textarea"
+              :autosize="{ minRows: 5 }" :input-props="{ spellcheck: false }" />
+          </n-collapse-item>
+        </n-collapse>
+      </div>
+
+
     </div>
 
 

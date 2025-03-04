@@ -39,8 +39,14 @@ onMounted(() => {
 <template>
   <div class="header-container">
     <h1>魔棒后台</h1>
-    <div class="status-container" @click="config_host">
-      <n-popover v-if="default_store.wifi_info.isOnline" trigger="hover">
+    <div
+      class="status-container"
+      @click="config_host"
+    >
+      <n-popover
+        v-if="default_store.wifi_info.isOnline"
+        trigger="hover"
+      >
         <template #trigger>
           <span style="width: 5rem;">{{ default_store.computed_data.used_men_percent }}%
           </span>
@@ -49,18 +55,38 @@ onMounted(() => {
       </n-popover>
 
       <span :class="['status-icon', default_store.wifi_info.isOnline ? 'online' : 'offline']">
-        <i v-if="default_store.wifi_info.isOnline" class="fas fa-circle" title="在线" />
-        <i v-else class="fas fa-circle-notch" title="离线" />
+        <i
+          v-if="default_store.wifi_info.isOnline"
+          class="fas fa-circle"
+          title="在线"
+        />
+        <i
+          v-else
+          class="fas fa-circle-notch"
+          title="离线"
+        />
       </span>
       <span class="status-text">{{ default_store.wifi_info.isOnline ? '在线' : '离线' }}</span>
     </div>
   </div>
 
-  <n-modal v-model:show="showModal" class="custom-card" preset="card" title="设置魔杖地址" size="huge" :bordered="false">
-    <n-flex vertical size="large">
+  <n-modal
+    v-model:show="showModal"
+    class="custom-card"
+    preset="card"
+    title="设置魔杖地址"
+    size="huge"
+    :bordered="false"
+  >
+    <n-flex
+      vertical
+      size="large"
+    >
       <n-flex>
-        <n-switch :value="default_store.wifi_info.use_user_host"
-          @update:value="(v) => { default_store.wifi_info.use_user_host = v }">
+        <n-switch
+          :value="default_store.wifi_info.use_user_host"
+          @update:value="(v) => { default_store.wifi_info.use_user_host = v }"
+        >
           <template #checked>
             已启用自定义
           </template>
@@ -72,9 +98,12 @@ onMounted(() => {
 
       <n-flex>
         <div>魔杖ip：</div>
-        <n-input v-model:value="default_store.wifi_info.user_host" type="text"
+        <n-input
+          v-model:value="default_store.wifi_info.user_host"
+          type="text"
           :disabled="!default_store.wifi_info.use_user_host"
-          :placeholder="default_store.wifi_info.use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`" />
+          :placeholder="default_store.wifi_info.use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`"
+        />
       </n-flex>
 
       <n-button @click="connect_device(message)">
@@ -84,13 +113,22 @@ onMounted(() => {
   </n-modal>
 
   <nav>
-    <RouterLink class="nowrap" to="/wifi-info">
+    <RouterLink
+      class="nowrap"
+      to="/wifi-info"
+    >
       WiFi信息
     </RouterLink>
-    <RouterLink class="nowrap" to="/gesture-detection">
+    <RouterLink
+      class="nowrap"
+      to="/gesture-detection"
+    >
       姿态检测
     </RouterLink>
-    <RouterLink class="nowrap" to="/cnn">
+    <RouterLink
+      class="nowrap"
+      to="/cnn"
+    >
       CNN
     </RouterLink>
     <!-- <RouterLink
@@ -129,13 +167,24 @@ onMounted(() => {
     >
       蓝牙音乐播放
     </RouterLink> -->
-    <RouterLink class="nowrap" to="/about">
+    <RouterLink
+      class="nowrap"
+      to="/about"
+    >
       本机信息
     </RouterLink>
-    <RouterLink v-if="default_store.device_info.dev_mode" class="nowrap" to="/config">
+    <RouterLink
+      v-if="default_store.device_info.dev_mode"
+      class="nowrap"
+      to="/config"
+    >
       自定义配置
     </RouterLink>
-    <RouterLink v-if="default_store.device_info.dev_mode" class="nowrap" to="/dev">
+    <RouterLink
+      v-if="default_store.device_info.dev_mode"
+      class="nowrap"
+      to="/dev"
+    >
       开发者模式
     </RouterLink>
   </nav>
@@ -144,11 +193,20 @@ onMounted(() => {
     <RouterView />
   </main>
 
-  <n-popover v-if="default_store.user_config.enable_ws_log.data" trigger="manual" :show="showLogPopover"
-    style="max-width: 640px;">
+  <n-popover
+    v-if="default_store.user_config.enable_ws_log.data"
+    trigger="manual"
+    :show="showLogPopover"
+    style="max-width: 640px;"
+  >
     <template #trigger>
       <div class="log-btn">
-        <n-button circle type="info" size="large" @click="showLogPopover = !showLogPopover">
+        <n-button
+          circle
+          type="info"
+          size="large"
+          @click="showLogPopover = !showLogPopover"
+        >
           <template #icon>
             <i class="fas fa-file-alt" />
           </template>
@@ -156,8 +214,15 @@ onMounted(() => {
       </div>
     </template>
 
-    <n-scrollbar ref="logInst" style="max-height: 400px">
-      <div v-for="item of default_store.log_text_list" :key="item" v-html="item" />
+    <n-scrollbar
+      ref="logInst"
+      style="max-height: 400px"
+    >
+      <div
+        v-for="item of default_store.log_text_list"
+        :key="item"
+        v-html="item"
+      />
     </n-scrollbar>
   </n-popover>
 </template>

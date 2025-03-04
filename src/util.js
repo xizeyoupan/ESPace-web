@@ -71,103 +71,103 @@ class WebSocketManager {
         const data_type = view.getUint8(0)
 
         switch (data_type) {
-          case FETCHED_USER_CONFIG_DATA_PREFIX: // load user config
-            default_store.user_config.ws2812_gpio_num.data = view.getUint32(1, true)
-            default_store.user_config.mpu_sda_gpio_num.data = view.getUint32(5, true)
-            default_store.user_config.mpu_scl_gpio_num.data = view.getUint32(9, true)
-            default_store.user_config.enable_imu_det.data = view.getUint8(13)
-            default_store.user_config.enable_ws_log.data = view.getUint8(14)
-            console.log("get config:", toRaw(default_store.user_config))
-            break
-          case FETCHED_WS_IMU_DATA_PREFIX: // IMU Data
-            let roll = view.getFloat32(1, true)
-            let pitch = view.getFloat32(5, true)
-            let ax = view.getFloat32(9, true)
-            let ay = view.getFloat32(13, true)
-            let az = view.getFloat32(17, true)
-            let gx = view.getFloat32(21, true)
-            let gy = view.getFloat32(25, true)
-            let gz = view.getFloat32(29, true)
-            default_store.imu_data.roll = roll
-            default_store.imu_data.pitch = pitch
-            default_store.imu_data.ax = ax
-            default_store.imu_data.ay = ay
-            default_store.imu_data.az = az
-            default_store.imu_data.gx = gx
-            default_store.imu_data.gy = gy
-            default_store.imu_data.gz = gz
-            break
-          case FETCHED_STAT_DATA_PREFIX: // Stat Info
-            // 1 byte: STAT_DATA_PREFIX
-            // 1 bytes: task_count
+        case FETCHED_USER_CONFIG_DATA_PREFIX: // load user config
+          default_store.user_config.ws2812_gpio_num.data = view.getUint32(1, true)
+          default_store.user_config.mpu_sda_gpio_num.data = view.getUint32(5, true)
+          default_store.user_config.mpu_scl_gpio_num.data = view.getUint32(9, true)
+          default_store.user_config.enable_imu_det.data = view.getUint8(13)
+          default_store.user_config.enable_ws_log.data = view.getUint8(14)
+          console.log("get config:", toRaw(default_store.user_config))
+          break
+        case FETCHED_WS_IMU_DATA_PREFIX: // IMU Data
+          let roll = view.getFloat32(1, true)
+          let pitch = view.getFloat32(5, true)
+          let ax = view.getFloat32(9, true)
+          let ay = view.getFloat32(13, true)
+          let az = view.getFloat32(17, true)
+          let gx = view.getFloat32(21, true)
+          let gy = view.getFloat32(25, true)
+          let gz = view.getFloat32(29, true)
+          default_store.imu_data.roll = roll
+          default_store.imu_data.pitch = pitch
+          default_store.imu_data.ax = ax
+          default_store.imu_data.ay = ay
+          default_store.imu_data.az = az
+          default_store.imu_data.gx = gx
+          default_store.imu_data.gy = gy
+          default_store.imu_data.gz = gz
+          break
+        case FETCHED_STAT_DATA_PREFIX: // Stat Info
+          // 1 byte: STAT_DATA_PREFIX
+          // 1 bytes: task_count
 
-            // 1 byte: task_name_length
-            // n bytes: task_name
-            // 1 byte: task_number
-            // 1 byte: task_state
-            // 2 bytes: stack_water_mark
+          // 1 byte: task_name_length
+          // n bytes: task_name
+          // 1 byte: task_number
+          // 1 byte: task_state
+          // 2 bytes: stack_water_mark
 
-            // 4 bytes: total_free_bytes
-            // 4 bytes: total_allocated_bytes
-            // 4 bytes: largest_free_block
-            // 4 bytes: minimum_free_bytes
-            // 2 bytes: ws_bytes_available
+          // 4 bytes: total_free_bytes
+          // 4 bytes: total_allocated_bytes
+          // 4 bytes: largest_free_block
+          // 4 bytes: minimum_free_bytes
+          // 2 bytes: ws_bytes_available
 
-            let data_index = 1
-            let task_count = view.getUint8(data_index)
+          let data_index = 1
+          let task_count = view.getUint8(data_index)
+          data_index += 1
+          // console.log("task_count:", task_count)
+          default_store.stat_data.task_list.length = 0
+          for (let i = 0; i < task_count; i++) {
+
+            const task_item = reactive({
+              task_name: "",
+              task_number: 0,
+              task_state: 0,
+              stack_water_mark: 0
+            })
+
+            let task_name_length = view.getUint8(data_index)
             data_index += 1
-            // console.log("task_count:", task_count)
-            default_store.stat_data.task_list.length = 0
-            for (let i = 0; i < task_count; i++) {
+            task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
+            data_index += task_name_length
+            task_item.task_number = view.getUint8(data_index)
+            data_index += 1
+            task_item.task_state = view.getUint8(data_index)
+            data_index += 1
+            task_item.stack_water_mark = view.getUint16(data_index, true)
+            data_index += 2
 
-              const task_item = reactive({
-                task_name: "",
-                task_number: 0,
-                task_state: 0,
-                stack_water_mark: 0
-              })
+            // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
 
-              let task_name_length = view.getUint8(data_index)
-              data_index += 1
-              task_item.task_name = new TextDecoder().decode(new Uint8Array(event.data, data_index, task_name_length))
-              data_index += task_name_length
-              task_item.task_number = view.getUint8(data_index)
-              data_index += 1
-              task_item.task_state = view.getUint8(data_index)
-              data_index += 1
-              task_item.stack_water_mark = view.getUint16(data_index, true)
-              data_index += 2
+            default_store.stat_data.task_list.push(task_item)
+          }
 
-              // console.log("task_name:", task_item.task_name, "task_number:", task_item.task_number, "task_state:", task_item.task_state, "stack_water_mark:", task_item.stack_water_mark)
+          default_store.sort_task_list()
 
-              default_store.stat_data.task_list.push(task_item)
-            }
-
-            default_store.sort_task_list()
-
-            default_store.stat_data.total_free_bytes = view.getUint32(data_index, true)
-            data_index += 4
-            default_store.stat_data.total_allocated_bytes = view.getUint32(data_index, true)
-            data_index += 4
-            default_store.stat_data.largest_free_block = view.getUint32(data_index, true)
-            data_index += 4
-            default_store.stat_data.minimum_free_bytes = view.getUint32(data_index, true)
-            break
-          case FETCHED_LOG_DATA_PREFIX:
-            let log_line = new TextDecoder().decode(new Uint8Array(event.data, 1, event.data.byteLength - 1))
-            // console.log(log_line)
-            default_store.log_text_list.push(ansi_up.ansi_to_html(log_line))
-            break
-          case FETCHED_DATASET_DATA_PREFIX:
-            let dataset_size = view.getUint32(1, true)
-            default_store.dataset_data_view = view
-            console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
-            break
-          default:
-            console.warn("未知数据类型:", data_type)
-            console.log("event.data:", event.data)
-            console.log("size:", event.data.byteLength)
-            break
+          default_store.stat_data.total_free_bytes = view.getUint32(data_index, true)
+          data_index += 4
+          default_store.stat_data.total_allocated_bytes = view.getUint32(data_index, true)
+          data_index += 4
+          default_store.stat_data.largest_free_block = view.getUint32(data_index, true)
+          data_index += 4
+          default_store.stat_data.minimum_free_bytes = view.getUint32(data_index, true)
+          break
+        case FETCHED_LOG_DATA_PREFIX:
+          let log_line = new TextDecoder().decode(new Uint8Array(event.data, 1, event.data.byteLength - 1))
+          // console.log(log_line)
+          default_store.log_text_list.push(ansi_up.ansi_to_html(log_line))
+          break
+        case FETCHED_DATASET_DATA_PREFIX:
+          let dataset_size = view.getUint32(1, true)
+          default_store.dataset_data_view = view
+          console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
+          break
+        default:
+          console.warn("未知数据类型:", data_type)
+          console.log("event.data:", event.data)
+          console.log("size:", event.data.byteLength)
+          break
         }
       }
     }

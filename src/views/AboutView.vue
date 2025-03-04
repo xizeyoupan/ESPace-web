@@ -85,10 +85,16 @@ try {
   <h2>关于</h2>
   <p>prefixURL：{{ default_store.wifi_info.host }}</p>
   <p>
-    <span style="user-select: none;" @click="trigger_egg">
+    <span
+      style="user-select: none;"
+      @click="trigger_egg"
+    >
       固件版本：{{ default_store.device_info.firmware_version }}&nbsp;
     </span>
-    <a target="_blank" :href="default_store.computed_data.firmware_tree">
+    <a
+      target="_blank"
+      :href="default_store.computed_data.firmware_tree"
+    >
       {{ default_store.device_info.git_commit_id }}
     </a>
   </p>
@@ -96,7 +102,10 @@ try {
     <span>
       最新版本：
     </span>
-    <a target="_blank" href="https://github.com/xizeyoupan/magic-wand">
+    <a
+      target="_blank"
+      href="https://github.com/xizeyoupan/magic-wand"
+    >
       <img src="https://img.shields.io/badge/xizeyoupan-magic--wand-brightgreen">
     </a>
   </p>
@@ -105,15 +114,20 @@ try {
   <p>芯片封装： {{ default_store.computed_data.package_version_str }}</p>
   <p>
     芯片版本：
-    <a target="_blank"
-      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${default_store.computed_data.chip_version_str.slice(1).replace('.', '-')}.html`">
+    <a
+      target="_blank"
+      :href="`https://docs.espressif.com/projects/esp-chip-errata/zh_CN/latest/esp32/_tags/v${default_store.computed_data.chip_version_str.slice(1).replace('.', '-')}.html`"
+    >
       {{ default_store.computed_data.chip_version_str }}
     </a>
   </p>
   <p>CPU频率： {{ default_store.computed_data.cpu_freq_str }}</p>
   <p>
     web版本：
-    <a target="_blank" :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`">
+    <a
+      target="_blank"
+      :href="`https://github.com/xizeyoupan/magic-wand-web/tree/${web_version}`"
+    >
       {{ web_version }}
     </a>
   </p>

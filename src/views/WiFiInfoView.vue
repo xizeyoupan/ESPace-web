@@ -125,7 +125,12 @@ await get_wifi_info()
 <template>
   <n-flex justify="space-between">
     <h2>当前连接信息</h2>
-    <n-button strong secondary type="primary" @click="get_wifi_info">
+    <n-button
+      strong
+      secondary
+      type="primary"
+      @click="get_wifi_info"
+    >
       刷新
     </n-button>
   </n-flex>
@@ -153,16 +158,37 @@ await get_wifi_info()
   <n-divider />
   <h2>WiFi列表</h2>
 
-  <n-modal v-model:show="showModal" class="custom-card" preset="card" title="连接WiFi" size="huge" :bordered="true">
-    <n-flex vertical size="large">
+  <n-modal
+    v-model:show="showModal"
+    class="custom-card"
+    preset="card"
+    title="连接WiFi"
+    size="huge"
+    :bordered="true"
+  >
+    <n-flex
+      vertical
+      size="large"
+    >
       <n-flex>
         <div>SSID：</div>
-        <n-input v-model:value="selected_ssid" type="text" placeholder="输入WiFi名称" />
+        <n-input
+          v-model:value="selected_ssid"
+          type="text"
+          placeholder="输入WiFi名称"
+        />
         <div>PASSWORD：</div>
-        <n-input v-model:value="selected_password" type="text" placeholder="输入WiFi密码" />
+        <n-input
+          v-model:value="selected_password"
+          type="text"
+          placeholder="输入WiFi密码"
+        />
       </n-flex>
 
-      <n-popover trigger="hover" placement="bottom">
+      <n-popover
+        trigger="hover"
+        placement="bottom"
+      >
         <template #trigger>
           <n-button @click="connect_ap">
             连接
@@ -177,13 +203,21 @@ await get_wifi_info()
     <template #header>
       <n-flex justify="space-between">
         <div>数量：{{ wifi_lsit.length }}</div>
-        <n-button strong secondary type="primary" @click="get_wifi_list">
+        <n-button
+          strong
+          secondary
+          type="primary"
+          @click="get_wifi_list"
+        >
           刷新
         </n-button>
       </n-flex>
     </template>
 
-    <n-list-item v-for="(wifi, index) in wifi_lsit" :key="index">
+    <n-list-item
+      v-for="(wifi, index) in wifi_lsit"
+      :key="index"
+    >
       <div class="wifi-info">
         <div><span class="label">SSID:</span>{{ wifi.SSID || `隐藏的WiFi` }}</div>
         <div><span class="label">RSSI:</span>{{ wifi.RSSI }} dBm</div>
@@ -202,11 +236,13 @@ await get_wifi_info()
         </div>
       </div>
       <template #suffix>
-        <n-button @click="() => {
-          showModal = true
-          selected_ssid = wifi.SSID
-          selected_password = ''
-        }">
+        <n-button
+          @click="() => {
+            showModal = true
+            selected_ssid = wifi.SSID
+            selected_password = ''
+          }"
+        >
           连接
         </n-button>
       </template>

@@ -103,8 +103,13 @@ const rowKey = (row) => row.task_number
     <h2>
       <span>任务信息</span>
     </h2>
-    <n-data-table ref="stat-table" size="small" :columns="columns" :data="default_store.stat_data.task_list"
-      :row-key="rowKey" />
+    <n-data-table
+      ref="stat-table"
+      size="small"
+      :columns="columns"
+      :data="default_store.stat_data.task_list"
+      :row-key="rowKey"
+    />
   </div>
 </template>
 
