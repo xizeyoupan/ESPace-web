@@ -22,13 +22,17 @@ let trainModel
 // const metrics = ['loss', 'acc', 'val_loss', 'val_acc']
 let container
 
+tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 1024 * 1000 * 1000)
+
 const visorInstance = tfvis.visor()
 if (visorInstance.isOpen()) {
     visorInstance.toggle()
 }
 
 export const toggle_visor = () => {
-    visorInstance.toggle()
+    if (!visorInstance.isOpen()) {
+        visorInstance.toggle()
+    }
 }
 
 export const load_data = async (dataset) => {
@@ -42,16 +46,24 @@ export const load_data = async (dataset) => {
 
     // item shape: [batch_size, 6 ,sample_size]
     dataset.items.forEach((item) => {
+
+        const ax = item.ax.map(v => v / 4)
+        const ay = item.ay.map(v => v / 4)
+        const az = item.az.map(v => v / 4)
+        const gx = item.gx.map(v => v / 500)
+        const gy = item.gy.map(v => v / 500)
+        const gz = item.gz.map(v => v / 500)
+
         if (item.set_type === "train") {
 
             X_train.push(
                 [
-                    item.ax,
-                    item.ay,
-                    item.az,
-                    item.gx,
-                    item.gy,
-                    item.gz,
+                    ax,
+                    ay,
+                    az,
+                    gx,
+                    gy,
+                    gz,
                 ]
             )
             Y_train.push(item.type_id)
@@ -60,12 +72,12 @@ export const load_data = async (dataset) => {
 
             X_val.push(
                 [
-                    item.ax,
-                    item.ay,
-                    item.az,
-                    item.gx,
-                    item.gy,
-                    item.gz,
+                    ax,
+                    ay,
+                    az,
+                    gx,
+                    gy,
+                    gz,
                 ]
             )
             Y_val.push(item.type_id)
@@ -73,12 +85,12 @@ export const load_data = async (dataset) => {
         } else if (item.set_type === "test") {
             X_test.push(
                 [
-                    item.ax,
-                    item.ay,
-                    item.az,
-                    item.gx,
-                    item.gy,
-                    item.gz,
+                    ax,
+                    ay,
+                    az,
+                    gx,
+                    gy,
+                    gz,
                 ]
             )
             Y_test.push(item.type_id)
@@ -100,6 +112,8 @@ export const load_data = async (dataset) => {
 }
 
 export const train = async (message, dataset) => {
+    toggle_visor()
+
     await load_data(dataset)
 
     container = { name: 'Model Training', tab: 'Training' }
@@ -132,8 +146,16 @@ export const train = async (message, dataset) => {
         tickLabels: classNames
     })
 
+    X_train.dispose()
+    Y_train.dispose()
+    X_val.dispose()
+    Y_val.dispose()
+    X_test.dispose()
+    Y_test.dispose()
     labels.dispose()
     preds.dispose()
+
+    console.log(`numBytesInGPUAllocated: ${tf.memory().numBytesInGPUAllocated}`)
 
     return result
 }

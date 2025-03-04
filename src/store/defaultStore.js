@@ -101,50 +101,50 @@ export const useDefaultStore = defineStore('default', () => {
   const log_text_list = ref([])
   const dataset_data_view = ref(null)
   const model_code = ref(`
-    // 添加第一个 1D 卷积层
-    model.add(tf.layers.conv1d({
-        inputShape: [dataset.sample_size, 6],  // 输入数据的形状
-        filters: 10,  // 卷积核的数量
-        kernelSize: 3,  // 卷积核的大小
-        activation: 'relu',  // 激活函数
-    }))
+// 添加第一个 1D 卷积层
+model.add(tf.layers.conv1d({
+    batchInputShape : [1, dataset.sample_size, 6],  // 输入数据的形状
+    filters: dataset.item_types.length,  // 卷积核的数量
+    kernelSize: 3,  // 卷积核的大小
+    activation: 'relu',  // 激活函数
+}))
 
-    // 添加池化层
-    model.add(tf.layers.maxPooling1d({
-        poolSize: 2,  // 池化窗口大小
-    }))
+// 添加池化层
+model.add(tf.layers.maxPooling1d({
+    poolSize: 2,  // 池化窗口大小
+}))
 
-    // 扁平化层，将 2D 输出转为 1D
-    model.add(tf.layers.flatten())
+// 扁平化层，将 2D 输出转为 1D
+model.add(tf.layers.flatten())
 
-    // 添加全连接层
-    model.add(tf.layers.dense({
-        units: 64,  // 隐藏层的神经元数
-        activation: 'relu',
-    }))
+// 添加全连接层
+model.add(tf.layers.dense({
+    units: dataset.item_types.length * 2,  // 隐藏层的神经元数
+    activation: 'relu',
+}))
 
-    // 输出层
-    model.add(tf.layers.dense({
-        units: dataset.item_types.length,  // 分类
-        activation: 'softmax',  // 使用 softmax 激活函数
-    }))
+// 输出层
+model.add(tf.layers.dense({
+    units: dataset.item_types.length,  // 分类
+    activation: 'softmax',  // 使用 softmax 激活函数
+}))
 
-    // 编译模型
-    model.compile({
-        optimizer: tf.train.adam(0.0001),
-        loss: 'sparseCategoricalCrossentropy',
-        metrics: ['accuracy'],
+// 编译模型
+model.compile({
+    optimizer: tf.train.adam(0.002),
+    loss: 'sparseCategoricalCrossentropy',
+    metrics: ['accuracy'],
+})
+
+trainModel = async () => {
+    await model.fit(X_train, Y_train, {
+        callbacks: tfvis.show.fitCallbacks(container, ['loss', 'acc', 'val_loss', 'val_acc'], { callbacks: ['onEpochEnd'] }),
+        shuffle: true,
+        //batchSize: 20,
+        epochs: 100,  // 设置训练轮数
+        validationData: [X_val, Y_val],  // 使用验证集进行验证
     })
-
-    trainModel = async () => {
-        await model.fit(X_train, Y_train, {
-            callbacks: tfvis.show.fitCallbacks(container, ['loss', 'acc', 'val_loss', 'val_acc'], { callbacks: ['onEpochEnd'] }),
-            shuffle: true,
-            //batchSize: 5,
-            epochs: 50,  // 设置训练轮数
-            validationData: [X_val, Y_val],  // 使用验证集进行验证
-        })
-    }
+}
     `)
 
   return {

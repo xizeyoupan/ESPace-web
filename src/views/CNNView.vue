@@ -483,7 +483,7 @@ const predict = () => {
               预测
             </n-button>
             <n-button strong secondary type="info" @click="toggle_visor">
-              数据面板
+              显示面板
             </n-button>
             <n-button strong secondary type="info" @click="save_model">
               保存
