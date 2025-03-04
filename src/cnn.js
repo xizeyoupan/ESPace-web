@@ -1,5 +1,5 @@
-import * as tf from "@tensorflow/tfjs"
-import * as tfvis from '@tensorflow/tfjs-vis'
+// import * as tf from "@tensorflow/tfjs"
+// import * as tfvis from '@tensorflow/tfjs-vis'
 
 import { useDefaultStore } from './store/defaultStore.js'
 import { reactive, ref, toRef, toRefs, toRaw } from 'vue'
@@ -19,7 +19,7 @@ let Y_test = []  // 测试集标签 (shape: [test_size, 1])
 let model
 let trainModel
 
-const metrics = ['loss', 'acc', 'val_loss', 'val_acc']
+// const metrics = ['loss', 'acc', 'val_loss', 'val_acc']
 let container = { name: 'Model Training', tab: 'Training' }
 
 export const load_data = async (dataset) => {

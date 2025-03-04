@@ -156,7 +156,7 @@ export const useDefaultStore = defineStore('default', () => {
 
       trainModel = async () => {
           await model.fit(X_train, Y_train, {
-              callbacks: tfvis.show.fitCallbacks(container, metrics, { callbacks: ['onEpochEnd'] }),
+              callbacks: tfvis.show.fitCallbacks(container, ['loss', 'acc', 'val_loss', 'val_acc'], { callbacks: ['onEpochEnd'] }),
               shuffle: true,
               // batchSize: 10,
               epochs: 20,  // 设置训练轮数
