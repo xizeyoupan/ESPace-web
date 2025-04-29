@@ -1,326 +1,179 @@
 <script setup>
 import { ref, onMounted, watchEffect, nextTick } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useMessage, NModal, NSwitch, NInput, NFlex, NButton, NPopover, NScrollbar } from "naive-ui"
 import { connect_device } from './util.js'
 import { useDefaultStore } from './store/defaultStore.js'
 import { get } from 'idb-keyval'
+import LanguageSwitcher from './components/LanguageSwitcher.vue'
+import InfoDisplay from './components/ConnectBtn.vue'
 
-const message = useMessage()
+const menuIsOpen = ref(false)
 const default_store = useDefaultStore()
-
-const showModal = ref(false)
-const showLogPopover = ref(false)
-
-const config_host = () => {
-  showModal.value = true
-}
-
 default_store.device_info.dev_mode = await get("dev_mode")
 
 if (!default_store.wifi_info.isOnline) {
-  connect_device(message)
+    connect_device()
 }
-
-const logInst = ref(null)
-
-onMounted(() => {
-  watchEffect(() => {
-    if (default_store.log_text_list.length) {
-      nextTick(() => {
-        logInst.value?.scrollTo({ position: "bottom", silent: true })
-      })
-    }
-  })
-})
 
 </script>
 
 <template>
-  <div class="header-container">
-    <h1>魔棒后台</h1>
-    <div
-      class="status-container"
-      @click="config_host"
-    >
-      <n-popover
-        v-if="default_store.wifi_info.isOnline"
-        trigger="hover"
-      >
-        <template #trigger>
-          <span style="width: 5rem;">{{ default_store.computed_data.used_men_percent }}%
-          </span>
-        </template>
-        已用内存
-      </n-popover>
-
-      <span :class="['status-icon', default_store.wifi_info.isOnline ? 'online' : 'offline']">
-        <i
-          v-if="default_store.wifi_info.isOnline"
-          class="fas fa-circle"
-          title="在线"
-        />
-        <i
-          v-else
-          class="fas fa-circle-notch"
-          title="离线"
-        />
-      </span>
-      <span class="status-text">{{ default_store.wifi_info.isOnline ? '在线' : '离线' }}</span>
-    </div>
-  </div>
-
-  <n-modal
-    v-model:show="showModal"
-    class="custom-card"
-    preset="card"
-    title="设置魔杖地址"
-    size="huge"
-    :bordered="false"
-  >
-    <n-flex
-      vertical
-      size="large"
-    >
-      <n-flex>
-        <n-switch
-          :value="default_store.wifi_info.use_user_host"
-          @update:value="(v) => { default_store.wifi_info.use_user_host = v }"
-        >
-          <template #checked>
-            已启用自定义
-          </template>
-          <template #unchecked>
-            未启用自定义
-          </template>
-        </n-switch>
-      </n-flex>
-
-      <n-flex>
-        <div>魔杖ip：</div>
-        <n-input
-          v-model:value="default_store.wifi_info.user_host"
-          type="text"
-          :disabled="!default_store.wifi_info.use_user_host"
-          :placeholder="default_store.wifi_info.use_user_host ? `例如 192.168.4.1 或 wand-esp32` : `已使用默认配置`"
-        />
-      </n-flex>
-
-      <n-button @click="connect_device(message)">
-        重新连接
-      </n-button>
-    </n-flex>
-  </n-modal>
-
-  <nav>
-    <RouterLink
-      class="nowrap"
-      to="/wifi-info"
-    >
-      WiFi信息
-    </RouterLink>
-    <RouterLink
-      class="nowrap"
-      to="/gesture-detection"
-    >
-      姿态检测
-    </RouterLink>
-    <RouterLink
-      class="nowrap"
-      to="/cnn"
-    >
-      CNN
-    </RouterLink>
-    <!-- <RouterLink
-      class="nowrap"
-      to="/bt-info"
-    >
-      蓝牙信息
-    </RouterLink> -->
-    <!-- <RouterLink
-      class="nowrap"
-      to="/bt-info"
-    >
-      蓝牙信息
-    </RouterLink> -->
-    <!-- <RouterLink
-      class="nowrap"
-      to="/ble-gamepad"
-    >
-      蓝牙手柄
-    </RouterLink> -->
-    <!-- <RouterLink
-      class="nowrap"
-      to="/ir-control"
-    >
-      红外遥控
-    </RouterLink> -->
-    <!-- <RouterLink
-      class="nowrap"
-      to="/music-from-net"
-    >
-      网络音乐播放
-    </RouterLink>
-    <RouterLink
-      class="nowrap"
-      to="/music-to-bt"
-    >
-      蓝牙音乐播放
-    </RouterLink> -->
-    <RouterLink
-      class="nowrap"
-      to="/about"
-    >
-      本机信息
-    </RouterLink>
-    <RouterLink
-      v-if="default_store.device_info.dev_mode"
-      class="nowrap"
-      to="/config"
-    >
-      自定义配置
-    </RouterLink>
-    <RouterLink
-      v-if="default_store.device_info.dev_mode"
-      class="nowrap"
-      to="/dev"
-    >
-      开发者模式
-    </RouterLink>
-  </nav>
-
-  <main class="scrollable-container">
-    <RouterView />
-  </main>
-
-  <n-popover
-    v-if="default_store.user_config.enable_ws_log.data"
-    trigger="manual"
-    :show="showLogPopover"
-    style="max-width: 640px;"
-  >
-    <template #trigger>
-      <div class="log-btn">
-        <n-button
-          circle
-          type="info"
-          size="large"
-          @click="showLogPopover = !showLogPopover"
-        >
-          <template #icon>
-            <i class="fas fa-file-alt" />
-          </template>
-        </n-button>
+  <header class="bg-white shadow-md fixed w-full z-50">
+    <div class="max-w-full mx-auto px-4 sm:px-8 lg:px-16 flex justify-between items-center h-16">
+      <!-- Logo -->
+      <div class="flex-shrink-0 text-xl font-bold text-blue-600">
+        {{ $t('app_name') }}
       </div>
-    </template>
 
-    <n-scrollbar
-      ref="logInst"
-      style="max-height: 400px"
+      <!-- Desktop Menu -->
+      <nav class="hidden md:flex space-x-8 items-center flex-wrap">
+        <RouterLink
+          class="text-gray-700 hover:text-blue-600"
+          to="/wifi-info"
+        >
+          {{ $t('nav.wifi_info') }}
+        </RouterLink>
+        <RouterLink
+          class="text-gray-700 hover:text-blue-600"
+          to="/gesture-detection"
+        >
+          {{ $t('nav.gesture') }}
+        </RouterLink>
+        <RouterLink
+          class="text-gray-700 hover:text-blue-600"
+          to="/cnn"
+        >
+          {{ $t('nav.CNN') }}
+        </RouterLink>
+
+        <RouterLink
+          class="text-gray-700 hover:text-blue-600"
+          to="/about"
+        >
+          {{ $t('nav.about') }}
+        </RouterLink>
+        <RouterLink
+          v-if="default_store.device_info.dev_mode"
+          class="text-gray-700 hover:text-blue-600"
+          to="/config"
+        >
+          自定义配置
+        </RouterLink>
+        <RouterLink
+          v-if="default_store.device_info.dev_mode"
+          class="text-gray-700 hover:text-blue-600"
+          to="/dev"
+        >
+          开发者模式
+        </RouterLink>
+
+        <LanguageSwitcher />
+
+        <InfoDisplay />
+      </nav>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden flex items-center">
+        <InfoDisplay />
+
+        <button
+          class="text-gray-700 hover:text-blue-600 focus:outline-none"
+          @click="menuIsOpen = !menuIsOpen"
+        >
+          <svg
+            v-if="!menuIsOpen"
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+          <svg
+            v-else
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <Transition
+      enter-active-class="transition ease-out duration-200"
+      enter-from-class="opacity-0 -translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition ease-in duration-150"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-2"
     >
       <div
-        v-for="item of default_store.log_text_list"
-        :key="item"
-        v-html="item"
-      />
-    </n-scrollbar>
-  </n-popover>
+        v-if="menuIsOpen"
+        class="md:hidden bg-white shadow-md"
+      >
+        <nav class="px-2 pt-2 pb-4 space-y-1">
+          <RouterLink
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/wifi-info"
+          >
+            {{ $t('nav.wifi_info') }}
+          </RouterLink>
+          <RouterLink
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/gesture-detection"
+          >
+            {{ $t('nav.gesture') }}
+          </RouterLink>
+          <RouterLink
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/cnn"
+          >
+            {{ $t('nav.CNN') }}
+          </RouterLink>
+
+          <RouterLink
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/about"
+          >
+            {{ $t('nav.about') }}
+          </RouterLink>
+          <RouterLink
+            v-if="default_store.device_info.dev_mode"
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/config"
+          >
+            自定义配置
+          </RouterLink>
+          <RouterLink
+            v-if="default_store.device_info.dev_mode"
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+            to="/dev"
+          >
+            开发者模式
+          </RouterLink>
+          <LanguageSwitcher />
+        </nav>
+      </div>
+    </Transition>
+  </header>
+
+  <main class="pt-20 max-w-7xl mx-auto px-4 w-full">
+    <RouterView />
+  </main>
 </template>
 
-<style>
-* {
-  vertical-align: middle;
-}
-
-body {
-  font-size: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0;
-}
-
-.scrollable-container {
-  max-height: 75vh;
-  overflow-y: auto;
-}
-
-.log-btn {
-  position: fixed;
-  bottom: 3rem;
-  right: 3rem;
-}
-
-nav,
-main {
-  border: 2px solid #000;
-  margin-bottom: 10px;
-  padding: 10px;
-}
-
-nav>a+a {
-  margin-left: 10px;
-}
-
-h2 {
-  border-bottom: 1px solid #ccc;
-  margin: 0 0 20px;
-}
-
-.nowrap {
-  white-space: nowrap;
-}
-
-
-#app {
-  margin: 20px;
-}
-
-.custom-card {
-  max-width: 400px;
-  min-width: 20%;
-}
-
-a {
-  text-decoration: none;
-}
-
-a:hover,
-a:active,
-a:focus {
-  text-decoration: none;
-}
-
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  max-height: 17vh;
-  min-height: 7vh;
-}
-
-.status-container {
-  display: flex;
-  align-items: center;
-}
-
-.status-icon {
-  font-size: 1.5rem;
-  margin-right: 8px;
-}
-
-.status-text {
-  font-size: 1rem;
-  color: #333;
-}
-
-.status-icon.online {
-  color: green;
-}
-
-.status-icon.offline {
-  color: red;
-}
+<style scoped>
 </style>

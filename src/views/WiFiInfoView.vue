@@ -17,28 +17,28 @@ const wifi_list_item_info = reactive({})
 const manuf = reactive({ data: null })
 
 const wifiAuthModes = [
-  "OPEN",
-  "WEP",
-  "WPA_PSK",
-  "WPA2_PSK",
-  "WPA_WPA2_PSK",
-  "ENTERPRISE",
-  "WPA3_PSK",
-  "WPA2_WPA3_PSK",
-  "WAPI_PSK",
-  "OWE",
-  "WPA3_ENT_192",
-  "WPA3_EXT_PSK",
-  "WPA3_EXT_PSK_MIXED_MODE",
+    "OPEN",
+    "WEP",
+    "WPA_PSK",
+    "WPA2_PSK",
+    "WPA_WPA2_PSK",
+    "ENTERPRISE",
+    "WPA3_PSK",
+    "WPA2_WPA3_PSK",
+    "WAPI_PSK",
+    "OWE",
+    "WPA3_ENT_192",
+    "WPA3_EXT_PSK",
+    "WPA3_EXT_PSK_MIXED_MODE",
 ]
 
 const wifiModes = [
-  "WIFI_MODE_NULL",  // null mode
-  "WIFI_MODE_STA",   // WiFi station mode
-  "WIFI_MODE_AP",    // WiFi soft-AP mode
-  "WIFI_MODE_APSTA", // WiFi station + soft-AP mode
-  "WIFI_MODE_NAN",   // WiFi NAN mode
-  "WIFI_MODE_MAX"    // Max value (not used as a mode)
+    "WIFI_MODE_NULL",  // null mode
+    "WIFI_MODE_STA",   // WiFi station mode
+    "WIFI_MODE_AP",    // WiFi soft-AP mode
+    "WIFI_MODE_APSTA", // WiFi station + soft-AP mode
+    "WIFI_MODE_NAN",   // WiFi NAN mode
+    "WIFI_MODE_MAX"    // Max value (not used as a mode)
 ]
 
 const showModal = ref(false)
@@ -46,76 +46,76 @@ const selected_ssid = ref('')
 const selected_password = ref('')
 
 const get_wifi_list = async () => {
-  if (check_not_oline(default_store, message)) return
+    if (check_not_oline(default_store, message)) return
 
-  let messageReactive
-  try {
-    messageReactive = message.loading("正在扫描", { duration: 20000 })
-    let resp = await api.get(default_store.wifi_info.host + '/wifi_list', { timeout: 20000 })
-    resp = await resp.json()
-    wifi_lsit.value = resp.wifi_lsit
-  } catch (error) {
-    console.error(error)
-    message.error('扫描超时，请重试')
-  } finally {
-    messageReactive.destroy()
-    messageReactive = null
-  }
+    let messageReactive
+    try {
+        messageReactive = message.loading("正在扫描", { duration: 20000 })
+        let resp = await api.get(default_store.wifi_info.host + '/wifi_list', { timeout: 20000 })
+        resp = await resp.json()
+        wifi_lsit.value = resp.wifi_lsit
+    } catch (error) {
+        console.error(error)
+        message.error('扫描超时，请重试')
+    } finally {
+        messageReactive.destroy()
+        messageReactive = null
+    }
 }
 
 
 const bssid2manf = (bssid, o) => {
-  let result = o.data ? o.data[bssid.split('-').join('').slice(0, 6).toLowerCase()] : ''
-  return result || ''
+    let result = o.data ? o.data[bssid.split('-').join('').slice(0, 6).toLowerCase()] : ''
+    return result || ''
 }
 
 const connect_ap = async () => {
-  if (!selected_ssid.value) {
-    message.error('WiFi名称不能为空')
-  }
-  const data = new URLSearchParams({
-    ssid: selected_ssid.value,
-    password: selected_password.value
-  })
+    if (!selected_ssid.value) {
+        message.error('WiFi名称不能为空')
+    }
+    const data = new URLSearchParams({
+        ssid: selected_ssid.value,
+        password: selected_password.value
+    })
 
-  try {
-    let resp = await api.post(default_store.wifi_info.host + '/connect_ap', { timeout: 5000, body: data })
-    message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
-  } catch (error) {
-    console.error(error)
-    message.error(error.toString())
-  }
+    try {
+        let resp = await api.post(default_store.wifi_info.host + '/connect_ap', { timeout: 5000, body: data })
+        message.info("正在连接，请重新连接WiFi并观察指示灯颜色", { duration: 10000 })
+    } catch (error) {
+        console.error(error)
+        message.error(error.toString())
+    }
 }
 
 const get_wifi_info = async () => {
-  let messageReactive
+    let messageReactive
 
-  try {
-    messageReactive = message.loading("正在刷新", { duration: 2000 })
-    let resp = await api.get(default_store.wifi_info.host + '/wifi_info')
-    resp = await resp.json()
-    Object.assign(wifi_list_item_info, resp)
-  } catch (error) {
-    console.error(error)
-  } finally {
-    if (messageReactive) messageReactive.destroy()
-    messageReactive = null
-  }
+    try {
+        messageReactive = message.loading("正在刷新", { duration: 2000 })
+        let resp = await api.get(default_store.wifi_info.host + '/wifi_info')
+        resp = await resp.json()
+        Object.assign(wifi_list_item_info, resp)
+    } catch (error) {
+        console.error(error)
+    } finally {
+        if (messageReactive) messageReactive.destroy()
+        messageReactive = null
+    }
 }
 
 manuf.data = await get('manuf')
 
 if (!manuf.data) {
-  api.get('https://www.wireshark.org/assets/json/manuf.json', { timeout: 20000 })
-    .then(res => res.json())
-    .then(res => {
-      manuf.data = res.data
-      set('manuf', res.data)
-    })
-    .catch(err => {
-      console.error(err)
-      message.error('获取厂商数据失败')
-    })
+    api.get('https://www.wireshark.org/assets/json/manuf.json', { timeout: 20000 })
+        .then(res => res.json())
+        .then(res => {
+            manuf.data = res.data
+            set('manuf', res.data)
+        })
+        .catch(err => {
+            console.error(err)
+            message.error('获取厂商数据失败')
+        })
 }
 
 await get_wifi_info()

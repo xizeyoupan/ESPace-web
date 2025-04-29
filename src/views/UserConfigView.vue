@@ -6,17 +6,17 @@ import { storeToRefs } from 'pinia'
 const default_store = useDefaultStore()
 
 const reset_config = () => {
-  default_store.wsmgr.reset_config()
+    default_store.wsmgr.reset_config()
 }
 
 const save_config = () => {
-  default_store.wsmgr.commit_config()
+    default_store.wsmgr.commit_config()
 }
 
 const display_config = computed(() => {
-  return Object.keys(default_store.user_config).filter(item => {
-    return default_store.user_config[item].display
-  })
+    return Object.keys(default_store.user_config).filter(item => {
+        return default_store.user_config[item].display
+    })
 })
 
 </script>

@@ -1,0 +1,13 @@
+{
+    // "editor.formatOnSave": true,
+    "eslint.validate": [
+        "javascript",
+        "vue",
+        "html",
+        "json"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "always"
+    },
+    // "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+}

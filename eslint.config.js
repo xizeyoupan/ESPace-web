@@ -6,7 +6,9 @@ export default [
             // override/add rules settings here, such as:
             // 'vue/no-unused-vars': 'error'
             'semi': [1, 'never'],
-            "indent": [1, 2]
+            "indent": ["error", 4],
+            "no-trailing-spaces": "error",
+            "no-multi-spaces": "error",
         }
     }
 ]

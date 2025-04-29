@@ -16,435 +16,435 @@ const record_ready = ref(false)
 const checked_model_type_id = ref(null)
 
 const new_dataset = reactive(
-  {
-    id: "",
-    desc: "",
-    type: null,
-    sample_tick: null, //采样间隔
-    sample_size: null, //采样数量
-    protion: {
-      train: 3,
-      validation: 1,
-      test: 1
-    },
-    item_types: [],
-    items: [],
-  }
+    {
+        id: "",
+        desc: "",
+        type: null,
+        sample_tick: null, //采样间隔
+        sample_size: null, //采样数量
+        protion: {
+            train: 3,
+            validation: 1,
+            test: 1
+        },
+        item_types: [],
+        items: [],
+    }
 )
 
 watch(
-  () => default_store.dataset_data_view,
-  (newVal, oldVal) => {
+    () => default_store.dataset_data_view,
+    (newVal, oldVal) => {
 
-    if (checked_model_type_id.value === null) {
-      return
-    }
-    // TODO: switch
+        if (checked_model_type_id.value === null) {
+            return
+        }
+        // TODO: switch
 
-    let dataset_size = default_store.dataset_data_view.getUint32(1, true)
-    let ax = []
-    let ay = []
-    let az = []
-    let gx = []
-    let gy = []
-    let gz = []
-    for (let i = 0; i < dataset_size; i++) {
-      ax.push(default_store.dataset_data_view.getFloat32(5 + (0 * dataset_size + i) * 4, true))
-      ay.push(default_store.dataset_data_view.getFloat32(5 + (1 * dataset_size + i) * 4, true))
-      az.push(default_store.dataset_data_view.getFloat32(5 + (2 * dataset_size + i) * 4, true))
-      gx.push(default_store.dataset_data_view.getFloat32(5 + (3 * dataset_size + i) * 4, true))
-      gy.push(default_store.dataset_data_view.getFloat32(5 + (4 * dataset_size + i) * 4, true))
-      gz.push(default_store.dataset_data_view.getFloat32(5 + (5 * dataset_size + i) * 4, true))
-    }
+        let dataset_size = default_store.dataset_data_view.getUint32(1, true)
+        let ax = []
+        let ay = []
+        let az = []
+        let gx = []
+        let gy = []
+        let gz = []
+        for (let i = 0; i < dataset_size; i++) {
+            ax.push(default_store.dataset_data_view.getFloat32(5 + (0 * dataset_size + i) * 4, true))
+            ay.push(default_store.dataset_data_view.getFloat32(5 + (1 * dataset_size + i) * 4, true))
+            az.push(default_store.dataset_data_view.getFloat32(5 + (2 * dataset_size + i) * 4, true))
+            gx.push(default_store.dataset_data_view.getFloat32(5 + (3 * dataset_size + i) * 4, true))
+            gy.push(default_store.dataset_data_view.getFloat32(5 + (4 * dataset_size + i) * 4, true))
+            gz.push(default_store.dataset_data_view.getFloat32(5 + (5 * dataset_size + i) * 4, true))
+        }
 
-    let train_num = 0
-    let validation_num = 0
-    let test_num = 0
+        let train_num = 0
+        let validation_num = 0
+        let test_num = 0
 
-    new_dataset.items.forEach((item) => {
-      if (item.set_type === "train") {
-        train_num++
-      } else if (item.set_type === "validation") {
-        validation_num++
-      } else if (item.set_type === "test") {
-        test_num++
-      }
-    })
+        new_dataset.items.forEach((item) => {
+            if (item.set_type === "train") {
+                train_num++
+            } else if (item.set_type === "validation") {
+                validation_num++
+            } else if (item.set_type === "test") {
+                test_num++
+            }
+        })
 
-    const total_portion = new_dataset.protion.train + new_dataset.protion.validation + new_dataset.protion.test
-    let set_type_num = [
-      {
-        type: "train",
-        protion_diff: train_num / new_dataset.items.length - new_dataset.protion.train / total_portion
-      },
-      {
-        type: "validation",
-        protion_diff: validation_num / new_dataset.items.length - new_dataset.protion.validation / total_portion
-      },
-      {
-        type: "test",
-        protion_diff: test_num / new_dataset.items.length - new_dataset.protion.test / total_portion
-      }
-    ]
+        const total_portion = new_dataset.protion.train + new_dataset.protion.validation + new_dataset.protion.test
+        let set_type_num = [
+            {
+                type: "train",
+                protion_diff: train_num / new_dataset.items.length - new_dataset.protion.train / total_portion
+            },
+            {
+                type: "validation",
+                protion_diff: validation_num / new_dataset.items.length - new_dataset.protion.validation / total_portion
+            },
+            {
+                type: "test",
+                protion_diff: test_num / new_dataset.items.length - new_dataset.protion.test / total_portion
+            }
+        ]
 
-    // sort
-    set_type_num.sort((a, b) => {
-      return a.protion_diff - b.protion_diff
-    })
+        // sort
+        set_type_num.sort((a, b) => {
+            return a.protion_diff - b.protion_diff
+        })
 
-    let item = {
-      id: new_dataset.items.length,
-      type_id: checked_model_type_id.value,
-      timestamp: Date.now(),
-      set_type: set_type_num[0].type,
-      ax: ax,
-      ay: ay,
-      az: az,
-      gx: gx,
-      gy: gy,
-      gz: gz,
-    }
+        let item = {
+            id: new_dataset.items.length,
+            type_id: checked_model_type_id.value,
+            timestamp: Date.now(),
+            set_type: set_type_num[0].type,
+            ax: ax,
+            ay: ay,
+            az: az,
+            gx: gx,
+            gy: gy,
+            gz: gz,
+        }
 
-    new_dataset.items.push(item)
+        new_dataset.items.push(item)
     // console.log("new_dataset item: ", item)
-  }
+    }
 )
 
 const update_record_ready = (state) => {
-  if (new_dataset.type === null) {
-    message.error("请选择模型类型")
-    return
-  } else if (new_dataset.sample_size == null) {
-    message.error("请输入采样数量")
-    return
-  } else if (new_dataset.sample_tick == null) {
-    message.error("请输入采样间隔")
-    return
-  } else if (new_dataset.sample_size > 500) {
-    message.error("采样数量不能超过500")
-    return
-  }
+    if (new_dataset.type === null) {
+        message.error("请选择模型类型")
+        return
+    } else if (new_dataset.sample_size == null) {
+        message.error("请输入采样数量")
+        return
+    } else if (new_dataset.sample_tick == null) {
+        message.error("请输入采样间隔")
+        return
+    } else if (new_dataset.sample_size > 500) {
+        message.error("采样数量不能超过500")
+        return
+    }
 
-  if (state) {
-    default_store.wsmgr.ready_to_scan_imu_data(new_dataset)
-  }
-  record_ready.value = state
+    if (state) {
+        default_store.wsmgr.ready_to_scan_imu_data(new_dataset)
+    }
+    record_ready.value = state
 }
 
 const dataset_type_cols = [
-  {
-    type: 'selection',
-    multiple: false,
-  },
-  {
-    title: 'id',
-    key: 'id',
-  },
-  {
-    title: '名称',
-    key: 'comment',
-    render(row, index) {
-      return h(
-        NInput,
-        {
-          value: row.comment,
-          onUpdateValue(v) {
-            new_dataset.item_types[index].comment = v
-          }
+    {
+        type: 'selection',
+        multiple: false,
+    },
+    {
+        title: 'id',
+        key: 'id',
+    },
+    {
+        title: '名称',
+        key: 'comment',
+        render(row, index) {
+            return h(
+                NInput,
+                {
+                    value: row.comment,
+                    onUpdateValue(v) {
+                        new_dataset.item_types[index].comment = v
+                    }
+                }
+            )
         }
-      )
-    }
-  },
-  {
-    title: '训练集条数',
-    key: 'train_num',
-  },
-  {
-    title: '验证集条数',
-    key: 'validation_num',
-  },
-  {
-    title: '测试集条数',
-    key: 'test_num',
-  },
-  {
-    title: '删除',
-    key: 'actions',
-    render(row) {
-      return h(
-        NButton,
-        {
-          strong: true,
-          tertiary: true,
-          size: 'small',
-          onClick: () => {
-            new_dataset.item_types.splice(row.id, 1)
-            for (let i = row.id; i < new_dataset.item_types.length; i++) {
-              new_dataset.item_types[i].id = i
-            }
-          }
-        },
-        { default: () => '删除' }
-      )
-    }
-  },
+    },
+    {
+        title: '训练集条数',
+        key: 'train_num',
+    },
+    {
+        title: '验证集条数',
+        key: 'validation_num',
+    },
+    {
+        title: '测试集条数',
+        key: 'test_num',
+    },
+    {
+        title: '删除',
+        key: 'actions',
+        render(row) {
+            return h(
+                NButton,
+                {
+                    strong: true,
+                    tertiary: true,
+                    size: 'small',
+                    onClick: () => {
+                        new_dataset.item_types.splice(row.id, 1)
+                        for (let i = row.id; i < new_dataset.item_types.length; i++) {
+                            new_dataset.item_types[i].id = i
+                        }
+                    }
+                },
+                { default: () => '删除' }
+            )
+        }
+    },
 ]
 
 const dataset_item_cols = [
-  {
-    title: 'id',
-    key: 'id',
-  },
-  {
-    title: '类型',
-    key: 'type_id',
-    render(row, index) {
-      return h(
-        NSelect,
-        {
-          value: new_dataset.items[index] ? new_dataset.items[index].type_id : "",
-          onUpdateValue(v) {
-            new_dataset.items[index].type_id = v
-          },
-          options: computed(() => {
-            return new_dataset.item_types.map((item) => {
-              return {
-                label: item.comment + " | " + item.id,
-                value: item.id
-              }
-            })
-          }).value,
-        },
-      )
-    }
-  },
-  {
-    title: '采样数量',
-    key: 'sample_size',
-    render(row) {
-      return h(
-        'span',
-        {},
-        row.ax.length
-      )
-    }
-  },
-  // {
-  //   title: '采集时间',
-  //   key: 'timestamp',
-  //   render(row) {
-  //     return h(
-  //       'span',
-  //       {},
-  //       new Date(row.timestamp).toLocaleString(
-  //         undefined,
-  //         {
-  //           year: '2-digit',
-  //           month: '2-digit',
-  //           day: '2-digit',
-  //           hour: '2-digit',
-  //           minute: '2-digit',
-  //           second: '2-digit',
-  //           fractionalSecondDigits: 3,
-  //         }
-  //       )
-  //     )
-  //   }
-  // },
-  {
-    title: '归类',
-    key: 'set_type',
-  },
-  {
-    title: '删除',
-    key: 'actions',
-    render(row) {
-      return h(
-        NButton,
-        {
-          strong: true,
-          tertiary: true,
-          size: 'small',
-          onClick: () => {
-            new_dataset.items.splice(row.id, 1)
-            for (let i = row.id; i < new_dataset.items.length; i++) {
-              new_dataset.items[i].id = i
-            }
-          }
-        },
-        { default: () => '删除' }
-      )
-    }
-  },
+    {
+        title: 'id',
+        key: 'id',
+    },
+    {
+        title: '类型',
+        key: 'type_id',
+        render(row, index) {
+            return h(
+                NSelect,
+                {
+                    value: new_dataset.items[index] ? new_dataset.items[index].type_id : "",
+                    onUpdateValue(v) {
+                        new_dataset.items[index].type_id = v
+                    },
+                    options: computed(() => {
+                        return new_dataset.item_types.map((item) => {
+                            return {
+                                label: item.comment + " | " + item.id,
+                                value: item.id
+                            }
+                        })
+                    }).value,
+                },
+            )
+        }
+    },
+    {
+        title: '采样数量',
+        key: 'sample_size',
+        render(row) {
+            return h(
+                'span',
+                {},
+                row.ax.length
+            )
+        }
+    },
+    // {
+    //   title: '采集时间',
+    //   key: 'timestamp',
+    //   render(row) {
+    //     return h(
+    //       'span',
+    //       {},
+    //       new Date(row.timestamp).toLocaleString(
+    //         undefined,
+    //         {
+    //           year: '2-digit',
+    //           month: '2-digit',
+    //           day: '2-digit',
+    //           hour: '2-digit',
+    //           minute: '2-digit',
+    //           second: '2-digit',
+    //           fractionalSecondDigits: 3,
+    //         }
+    //       )
+    //     )
+    //   }
+    // },
+    {
+        title: '归类',
+        key: 'set_type',
+    },
+    {
+        title: '删除',
+        key: 'actions',
+        render(row) {
+            return h(
+                NButton,
+                {
+                    strong: true,
+                    tertiary: true,
+                    size: 'small',
+                    onClick: () => {
+                        new_dataset.items.splice(row.id, 1)
+                        for (let i = row.id; i < new_dataset.items.length; i++) {
+                            new_dataset.items[i].id = i
+                        }
+                    }
+                },
+                { default: () => '删除' }
+            )
+        }
+    },
 ]
 
 const handleNavUpdateValue = (key, item) => {
-  nav.value = item.key
+    nav.value = item.key
 }
 
 const handleModelUpdateValue = (value, option) => {
-  message.info(`value: ${JSON.stringify(value)}`)
-  message.info(`option: ${JSON.stringify(option)}`)
+    message.info(`value: ${JSON.stringify(value)}`)
+    message.info(`option: ${JSON.stringify(option)}`)
 }
 
 const menuOptions = [
-  {
-    label: "模型",
-    key: "model",
-  },
-  {
-    label: "数据集",
-    key: "new_dataset",
-  },
+    {
+        label: "模型",
+        key: "model",
+    },
+    {
+        label: "数据集",
+        key: "new_dataset",
+    },
 ]
 
 const model_loading_options = [
-  {
-    label: '云数据库',
-    value: 'db',
-  },
-  {
-    label: '本地文件',
-    value: 'local',
-  },
-  {
-    label: 'flash',
-    value: 'flash',
-  },
+    {
+        label: '云数据库',
+        value: 'db',
+    },
+    {
+        label: '本地文件',
+        value: 'local',
+    },
+    {
+        label: 'flash',
+        value: 'flash',
+    },
 ]
 
 const mode_list = ref([
-  {
-    label: 'flash',
-    value: 'flash',
-  },
+    {
+        label: 'flash',
+        value: 'flash',
+    },
 ])
 
 const mode_type_list = [
-  {
-    id: 0,
-    label: "指令模型",
-    value: 0,
-    desc: "该类模型需要在一个周期内完成一个完整的动作"
-  },
-  {
-    id: 1,
-    label: "连续模型",
-    value: 1,
-    desc: "该类模型进行不间断扫描，达到采样数量后进行识别"
-  },
+    {
+        id: 0,
+        label: "指令模型",
+        value: 0,
+        desc: "该类模型需要在一个周期内完成一个完整的动作"
+    },
+    {
+        id: 1,
+        label: "连续模型",
+        value: 1,
+        desc: "该类模型进行不间断扫描，达到采样数量后进行识别"
+    },
 ]
 
 const pagination = {
-  pageSize: 10
+    pageSize: 10
 }
 
 function gen_dataset_type_item() {
-  let data = {
-    id: ref(new_dataset.item_types.length),
-    comment: ref(""),
-    desc: ref(""),
-    train_num: ref(0),
-    validation_num: ref(0),
-    test_num: ref(0),
-  }
-  data.key = ref(data.id)
-  new_dataset.item_types.push(data)
+    let data = {
+        id: ref(new_dataset.item_types.length),
+        comment: ref(""),
+        desc: ref(""),
+        train_num: ref(0),
+        validation_num: ref(0),
+        test_num: ref(0),
+    }
+    data.key = ref(data.id)
+    new_dataset.item_types.push(data)
 }
 
 const dataset_type_items_for_table = computed(() => {
-  let data = new_dataset.item_types.map((item) => {
+    let data = new_dataset.item_types.map((item) => {
 
-    let train_num = 0
-    let validation_num = 0
-    let test_num = 0
+        let train_num = 0
+        let validation_num = 0
+        let test_num = 0
 
-    new_dataset.items.forEach((each) => {
-      if (each.type_id != item.id) {
-        return
-      }
+        new_dataset.items.forEach((each) => {
+            if (each.type_id != item.id) {
+                return
+            }
 
-      if (each.set_type === "train") {
-        train_num++
-      } else if (each.set_type === "validation") {
-        validation_num++
-      } else if (each.set_type === "test") {
-        test_num++
-      }
+            if (each.set_type === "train") {
+                train_num++
+            } else if (each.set_type === "validation") {
+                validation_num++
+            } else if (each.set_type === "test") {
+                test_num++
+            }
+        })
+
+        item.train_num = train_num
+        item.validation_num = validation_num
+        item.test_num = test_num
+        return item
     })
 
-    item.train_num = train_num
-    item.validation_num = validation_num
-    item.test_num = test_num
-    return item
-  })
-
-  return data
+    return data
 })
 
 const handle_type_row_check = (keys, rows, meta) => {
-  //选中类别
-  if (meta.action === "check") {
-    checked_model_type_id.value = rows[0].id
-    console.log("checked_model_type_id: ", checked_model_type_id.value, ", comment: ", new_dataset.item_types[checked_model_type_id.value].comment)
-  }
+    //选中类别
+    if (meta.action === "check") {
+        checked_model_type_id.value = rows[0].id
+        console.log("checked_model_type_id: ", checked_model_type_id.value, ", comment: ", new_dataset.item_types[checked_model_type_id.value].comment)
+    }
 }
 
 const load_dataset = () => {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.json' // 只允许 JSON 文件
-  input.style.display = 'none' // 隐藏 input
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json' // 只允许 JSON 文件
+    input.style.display = 'none' // 隐藏 input
 
-  // 监听文件选择
-  input.addEventListener('change', function (event) {
-    const file = event.target.files[0] // 获取用户选择的文件
-    if (!file) return
+    // 监听文件选择
+    input.addEventListener('change', function (event) {
+        const file = event.target.files[0] // 获取用户选择的文件
+        if (!file) return
 
-    const reader = new FileReader()
+        const reader = new FileReader()
 
-    reader.onload = function (e) {
-      try {
-        const jsonData = JSON.parse(e.target.result) // 解析 JSON
-        console.log('JSON 数据:', jsonData)
-        Object.assign(new_dataset, jsonData)
-      } catch (error) {
-        console.error('JSON 解析失败:', error)
-      }
-    };
+        reader.onload = function (e) {
+            try {
+                const jsonData = JSON.parse(e.target.result) // 解析 JSON
+                console.log('JSON 数据:', jsonData)
+                Object.assign(new_dataset, jsonData)
+            } catch (error) {
+                console.error('JSON 解析失败:', error)
+            }
+        }
 
-    reader.readAsText(file) // 以文本方式读取文件
-  })
+        reader.readAsText(file) // 以文本方式读取文件
+    })
 
-  // 触发文件选择
-  input.click()
+    // 触发文件选择
+    input.click()
 }
 
 const save_dataset = () => {
-  let dataset_s = JSON.stringify(new_dataset)
+    let dataset_s = JSON.stringify(new_dataset)
 
-  const blob = new Blob([dataset_s], { type: 'application/json' })
+    const blob = new Blob([dataset_s], { type: 'application/json' })
 
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `wand-dataset-${new_dataset.id}-${new Date().toLocaleString(
-    undefined,
-    {
-      year: '2-digit',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }
-  )}.json`
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `wand-dataset-${new_dataset.id}-${new Date().toLocaleString(
+        undefined,
+        {
+            year: '2-digit',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        }
+    )}.json`
 
-  // 触发点击事件，下载文件
-  link.click()
+    // 触发点击事件，下载文件
+    link.click()
 }
 
 const train_model = async () => {
-  await train(message, new_dataset)
+    await train(message, new_dataset)
 }
 
 const predict = () => {
@@ -454,7 +454,12 @@ const predict = () => {
 </script>
 
 <template>
-  <n-menu mode="horizontal" :options="menuOptions" responsive @update:value="handleNavUpdateValue" />
+  <n-menu
+    mode="horizontal"
+    :options="menuOptions"
+    responsive
+    @update:value="handleNavUpdateValue"
+  />
   <div class="cnn-container">
     <div v-if="!nav">
       <p>
@@ -464,64 +469,116 @@ const predict = () => {
     </div>
 
     <div v-else-if="nav === `model`">
-      <n-grid y-gap="12" x-gap="12" :cols="2">
-
+      <n-grid
+        y-gap="12"
+        x-gap="12"
+        :cols="2"
+      >
         <n-grid-item>
           <n-flex align="center">
             <span>数据集名称</span>
-            <n-input v-model:value="new_dataset.id" type="text" placeholder="请前往数据集选项" disabled
-              style="max-width: 50%;" />
+            <n-input
+              v-model:value="new_dataset.id"
+              type="text"
+              placeholder="请前往数据集选项"
+              disabled
+              style="max-width: 50%;"
+            />
           </n-flex>
         </n-grid-item>
 
         <n-grid-item>
           <n-flex align="center">
-            <n-button strong secondary type="info" @click="train_model">
+            <n-button
+              strong
+              secondary
+              type="info"
+              @click="train_model"
+            >
               训练
             </n-button>
-            <n-button strong secondary type="success" @click="predict">
+            <n-button
+              strong
+              secondary
+              type="success"
+              @click="predict"
+            >
               预测
             </n-button>
-            <n-button strong secondary type="info" @click="toggle_visor">
+            <n-button
+              strong
+              secondary
+              type="info"
+              @click="toggle_visor"
+            >
               显示面板
             </n-button>
-            <n-button strong secondary type="info" @click="save_model">
+            <n-button
+              strong
+              secondary
+              type="info"
+              @click="save_model"
+            >
               保存
             </n-button>
           </n-flex>
         </n-grid-item>
-
       </n-grid>
 
       <div style="margin:20px 20px 20px 0; ">
         <n-collapse>
-          <n-collapse-item title="模型及训练代码" name="code">
-            <n-input v-model:value="default_store.model_code" type="textarea" placeholder="基本的 Textarea"
-              :autosize="{ minRows: 5 }" :input-props="{ spellcheck: false }" />
+          <n-collapse-item
+            title="模型及训练代码"
+            name="code"
+          >
+            <n-input
+              v-model:value="default_store.model_code"
+              type="textarea"
+              placeholder="基本的 Textarea"
+              :autosize="{ minRows: 5 }"
+              :input-props="{ spellcheck: false }"
+            />
           </n-collapse-item>
         </n-collapse>
       </div>
-
-
     </div>
 
 
 
     <div v-else-if="nav === `new_dataset`">
-      <n-grid y-gap="12" x-gap="12" :cols="2">
+      <n-grid
+        y-gap="12"
+        x-gap="12"
+        :cols="2"
+      >
         <n-grid-item>
           <n-flex align="center">
             <span>模型名称</span>
-            <n-input v-model:value="new_dataset.id" type="text" placeholder="模型的id" style="max-width: 50%;" />
+            <n-input
+              v-model:value="new_dataset.id"
+              type="text"
+              placeholder="模型的id"
+              style="max-width: 50%;"
+            />
           </n-flex>
         </n-grid-item>
 
         <n-grid-item>
           <n-flex align="center">
-            <n-button strong secondary type="info" @click="load_dataset">
+            <n-button
+              strong
+              secondary
+              type="info"
+              @click="load_dataset"
+            >
               导入
             </n-button>
-            <n-button strong secondary type="success" @click="save_dataset">
+            <n-button
+              strong
+              secondary
+              type="success"
+              @click="save_dataset"
+            >
               保存
             </n-button>
           </n-flex>
@@ -530,17 +587,30 @@ const predict = () => {
         <n-grid-item>
           <n-flex align="center">
             <span>模型简介</span>
-            <n-input v-model:value="new_dataset.desc" type="text" placeholder="模型的介绍" style="max-width: 60%;" />
+            <n-input
+              v-model:value="new_dataset.desc"
+              type="text"
+              placeholder="模型的介绍"
+              style="max-width: 60%;"
+            />
           </n-flex>
         </n-grid-item>
 
         <n-grid-item>
           <n-flex align="center">
             <span>模型类别</span>
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;"
-                  :options="mode_type_list" @update:value="(value) => { record_ready = false }" />
+                <n-select
+                  v-model:value="new_dataset.type"
+                  placeholder="选择模型类型"
+                  style="width: 30%;"
+                  :options="mode_type_list"
+                  @update:value="(value) => { record_ready = false }"
+                />
               </template>
               <template v-if="new_dataset.type != null">
                 {{ mode_type_list[new_dataset.type].desc }}
@@ -552,10 +622,19 @@ const predict = () => {
         <n-grid-item>
           <n-flex align="center">
             <span>采样间隔</span>
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input-number v-model:value="new_dataset.sample_tick" style="width: 30%;" clearable
-                  placeholder="请输入采样间隔(ms)" :min="1" @update:value="(value) => { record_ready = false }" />
+                <n-input-number
+                  v-model:value="new_dataset.sample_tick"
+                  style="width: 30%;"
+                  clearable
+                  placeholder="请输入采样间隔(ms)"
+                  :min="1"
+                  @update:value="(value) => { record_ready = false }"
+                />
               </template>
               每隔几毫秒进行一次采样
             </n-popover>
@@ -565,17 +644,33 @@ const predict = () => {
         <n-grid-item>
           <n-flex align="center">
             <span>采样数量</span>
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input-number v-model:value="new_dataset.sample_size" style="width: 30%;" clearable
-                  placeholder="请输入数据数量" :min="10" :max="500" @update:value="(value) => { record_ready = false }" />
+                <n-input-number
+                  v-model:value="new_dataset.sample_size"
+                  style="width: 30%;"
+                  clearable
+                  placeholder="请输入数据数量"
+                  :min="10"
+                  :max="500"
+                  @update:value="(value) => { record_ready = false }"
+                />
               </template>
               对于指令模型，如果一个周期内实际采样的点数与该值不一致，则会超采或降采样到这个值；对于连续模型，这个值就是一次推理采样到的数量。
             </n-popover>
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input style="width: 30%;" disabled
-                  :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'" />
+                <n-input
+                  style="width: 30%;"
+                  disabled
+                  :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'"
+                />
               </template>
               单次采样等效时长
             </n-popover>
@@ -585,71 +680,125 @@ const predict = () => {
         <n-grid-item>
           <n-flex align="center">
             <span>训练集、验证集、测试集相对比例</span>
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.train" style="width: 20%;" />
+                <n-input-number
+                  v-model:value="new_dataset.protion.train"
+                  style="width: 20%;"
+                />
               </template>
               train
             </n-popover>
 
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.validation" style="width: 20%;" />
+                <n-input-number
+                  v-model:value="new_dataset.protion.validation"
+                  style="width: 20%;"
+                />
               </template>
               validation
             </n-popover>
 
-            <n-popover trigger="hover" placement="bottom">
+            <n-popover
+              trigger="hover"
+              placement="bottom"
+            >
               <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.test" style="width: 20%;" />
+                <n-input-number
+                  v-model:value="new_dataset.protion.test"
+                  style="width: 20%;"
+                />
               </template>
               test
             </n-popover>
           </n-flex>
         </n-grid-item>
-
       </n-grid>
 
-      <n-split direction="horizontal" style="margin-top: 20px;">
+      <n-split
+        direction="horizontal"
+        style="margin-top: 20px;"
+      >
         <template #1>
-          <n-flex vertical style="padding-right: 10px;">
+          <n-flex
+            vertical
+            style="padding-right: 10px;"
+          >
             <n-flex align="center">
               <span style="font-weight: normal;">类别</span>
-              <n-button style="margin-left: 10px;" strong secondary type="info" @click="gen_dataset_type_item">
+              <n-button
+                style="margin-left: 10px;"
+                strong
+                secondary
+                type="info"
+                @click="gen_dataset_type_item"
+              >
                 新增
               </n-button>
             </n-flex>
-            <n-data-table :columns="dataset_type_cols" :pagination="pagination" :data="dataset_type_items_for_table"
-              @update:checked-row-keys="handle_type_row_check" />
+            <n-data-table
+              :columns="dataset_type_cols"
+              :pagination="pagination"
+              :data="dataset_type_items_for_table"
+              @update:checked-row-keys="handle_type_row_check"
+            />
           </n-flex>
         </template>
         <template #2>
-          <n-flex vertical style="padding-left: 10px;">
+          <n-flex
+            vertical
+            style="padding-left: 10px;"
+          >
             <n-flex align="center">
               <span>
                 采集状态：
               </span>
-              <n-switch :value="record_ready" @update:value="update_record_ready" />
-              <n-button style="margin-left: 10px;" strong secondary type="info"
-                @click="() => { new_dataset.items.length = 0 }">
+              <n-switch
+                :value="record_ready"
+                @update:value="update_record_ready"
+              />
+              <n-button
+                style="margin-left: 10px;"
+                strong
+                secondary
+                type="info"
+                @click="() => { new_dataset.items.length = 0 }"
+              >
                 清空
               </n-button>
-              <n-button style="margin-left: 10px;" strong secondary type="info" @click="() => {
-                new_dataset.items = new_dataset.items.filter(
-                  (item) => {
-                    return item.type_id != checked_model_type_id
+              <n-button
+                style="margin-left: 10px;"
+                strong
+                secondary
+                type="info"
+                @click="() => {
+                  new_dataset.items = new_dataset.items.filter(
+                    (item) => {
+                      return item.type_id != checked_model_type_id
+                    }
+                  )
+                  for (let i = 0; i < new_dataset.items.length; i++) {
+                    new_dataset.items[i].id = i
                   }
-                )
-                for (let i = 0; i < new_dataset.items.length; i++) {
-                  new_dataset.items[i].id = i
-                }
-              }">
+                }"
+              >
                 删除选中类型
               </n-button>
             </n-flex>
 
-            <n-data-table :columns="dataset_item_cols" :pagination="pagination" :data="new_dataset.items"
-              @update:checked-row-keys="handle_type_row_check" />
+            <n-data-table
+              :columns="dataset_item_cols"
+              :pagination="pagination"
+              :data="new_dataset.items"
+              @update:checked-row-keys="handle_type_row_check"
+            />
           </n-flex>
         </template>
       </n-split>

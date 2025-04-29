@@ -8,73 +8,73 @@ const message = useMessage()
 const default_store = useDefaultStore()
 
 const state_to_str = [
-  'eRunning',
-  'eReady',
-  'eBlocked',
-  'eSuspended',
-  'eDeleted'
+    'eRunning',
+    'eReady',
+    'eBlocked',
+    'eSuspended',
+    'eDeleted'
 ]
 
 const column1 = {
-  title: '任务id',
-  key: 'task_number',
-  sorter: false,
-  sortOrder: false
+    title: '任务id',
+    key: 'task_number',
+    sorter: false,
+    sortOrder: false
 }
 
 const column2 = {
-  title: '任务名称',
-  key: 'task_name',
-  sorter: false,
-  sortOrder: false,
+    title: '任务名称',
+    key: 'task_name',
+    sorter: false,
+    sortOrder: false,
 }
 
 const column3 = {
-  title: '任务状态',
-  key: 'task_state',
-  render(row, index) {
-    return h('span', [state_to_str[row.task_state]])
-  },
-  sorter: false,
-  sortOrder: false,
-  filter: false,
-  filterOptionValues: [],
-  filterOptions: [
-    {
-      label: state_to_str[0],
-      value: 0
+    title: '任务状态',
+    key: 'task_state',
+    render(row, index) {
+        return h('span', [state_to_str[row.task_state]])
     },
-    {
-      label: state_to_str[1],
-      value: 1
-    },
-    {
-      label: state_to_str[2],
-      value: 2
-    },
-    {
-      label: state_to_str[3],
-      value: 3
-    },
-    {
-      label: state_to_str[4],
-      value: 4
-    },
-  ]
+    sorter: false,
+    sortOrder: false,
+    filter: false,
+    filterOptionValues: [],
+    filterOptions: [
+        {
+            label: state_to_str[0],
+            value: 0
+        },
+        {
+            label: state_to_str[1],
+            value: 1
+        },
+        {
+            label: state_to_str[2],
+            value: 2
+        },
+        {
+            label: state_to_str[3],
+            value: 3
+        },
+        {
+            label: state_to_str[4],
+            value: 4
+        },
+    ]
 }
 
 const column4 = {
-  title: '最小可用栈',
-  key: 'stack_water_mark',
-  sorter: false,
-  sortOrder: false,
+    title: '最小可用栈',
+    key: 'stack_water_mark',
+    sorter: false,
+    sortOrder: false,
 }
 
 const columns = [
-  column1,
-  column2,
-  column3,
-  column4
+    column1,
+    column2,
+    column3,
+    column4
 ]
 
 const rowKey = (row) => row.task_number
