@@ -17,7 +17,8 @@
         class="h-5 w-5"
         :class="{
           'text-green-500': type === 'success',
-          'text-red-500': type === 'error'
+          'text-red-500': type === 'error',
+          'text-blue-500': type === 'info'
         }"
         aria-hidden="true"
       />
@@ -28,7 +29,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/solid'
+import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/vue/24/solid'
 
 const props = defineProps({
     text: { type: String, default: '' },
@@ -36,6 +37,15 @@ const props = defineProps({
 })
 
 const icon = computed(() => {
-    return props.type === 'success' ? CheckCircleIcon : XCircleIcon
+    switch (props.type) {
+    case 'error':
+        return XCircleIcon
+    case 'info':
+        return InformationCircleIcon
+    case 'success':
+        return CheckCircleIcon
+    default:
+        return InformationCircleIcon
+    }
 })
 </script>

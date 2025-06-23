@@ -1,6 +1,6 @@
 <script setup>
-import { NMessageProvider, NModalProvider, NConfigProvider } from "naive-ui"
 import App from './App.vue'
+import { NMessageProvider, NModalProvider, NConfigProvider } from "naive-ui"
 </script>
 
 <template>
@@ -16,5 +16,4 @@ import App from './App.vue'
 </template>
 
 <style scoped>
-
 </style>

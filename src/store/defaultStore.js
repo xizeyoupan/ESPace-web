@@ -15,30 +15,24 @@ const chipVersions = [
 
 export const useDefaultStore = defineStore('default', () => {
 
-    const imu_data = reactive({
-        roll: 0,
-        pitch: 0,
-        yaw: 0,
-        ax: 0,
-        ay: 0,
-        az: 0,
-        gx: 0,
-        gy: 0,
-        gz: 0,
-    })
-
-    const wsmgr = reactive({})
-
     const wifi_info = reactive({
         isOnline: false,
         host: "",
-        use_user_host: "",
         enable_custom_address: false,
         custom_address: "",
-        user_host: "",
-        sta_ssid: "",
-        sta_pass: "",
+        wifi_mode: 0,
+        SSID: "",
+        BSSID: "",
+        RSSI: 0,
+        channel: 0,
+        ip: "",
+        gw: "",
+        netmask: "",
+        input_password: "",
+        input_ssid: "",
     })
+
+    const wifi_list = ref([])
 
     const device_info = reactive({
         dev_mode: false,
@@ -52,20 +46,18 @@ export const useDefaultStore = defineStore('default', () => {
     })
 
     const stat_data = reactive({
+        task_count: 0,
         task_list: [],
         total_free_bytes: 0,
-        ws_bytes_available: 0,
-        minimum_free_bytes: 0,
-        largest_free_block: 0,
         total_allocated_bytes: 0,
-        task_list_order_column: "task_number",
-        task_list_order: true,
+        largest_free_block: 0,
+        minimum_free_bytes: 0,
     })
 
     const computed_data = reactive({
         package_version_str: computed(() => chipVersions[device_info.package_version]),
-        chip_version_str: computed(() => `v${device_info.chip_version / 100}.${device_info.chip_version / 10 % 10}`),
-        firmware_tree: computed(() => `https://github.com/xizeyoupan/magic-wand/tree/${device_info.git_commit_id}`),
+        chip_version_str: computed(() => `v${parseInt(device_info.chip_version / 100)}.${device_info.chip_version % 10}`),
+        firmware_tree: computed(() => `https://github.com/xizeyoupan/esp-light/tree/${device_info.git_commit_id}`),
         cpu_freq_str: computed(() => `${device_info.cpu_freq / 1000000}Mhz`),
         used_men_percent: computed(() => {
             return (stat_data.total_allocated_bytes / (stat_data.total_allocated_bytes + stat_data.total_free_bytes) * 100).toFixed(2)
@@ -75,81 +67,48 @@ export const useDefaultStore = defineStore('default', () => {
         }),
     })
 
-    const sort_task_list = () => {
-        let task_list_order_column = stat_data.task_list_order_column
-        stat_data.task_list.sort((a, b) => {
-            if (task_list_order_column === "task_number") {
-                return stat_data.task_list_order ? a.task_number - b.task_number : b.task_number - a.task_number
-            } else if (task_list_order_column === "task_name") {
-                return stat_data.task_list_order ? a.task_name.localeCompare(b.task_name) : b.task_name.localeCompare(a.task_name)
-            } else if (task_list_order_column === "task_state") {
-                return stat_data.task_list_order ? a.task_state - b.task_state : b.task_state - a.task_state
-            } else if (task_list_order_column === "stack_water_mark") {
-                return stat_data.task_list_order ? a.stack_water_mark - b.stack_water_mark : b.stack_water_mark - a.stack_water_mark
-            } else {
-                return 0
-            }
-        })
-    }
-
     const user_config = reactive({
-        ws2812_gpio_num: { data: -1, display: true, type: 'number' },
-        mpu_sda_gpio_num: { data: -1, display: true, type: 'number' },
-        mpu_scl_gpio_num: { data: -1, display: true, type: 'number' },
-        enable_imu_det: { data: 0, display: false, type: 'number' },
-        enable_ws_log: { data: 0, display: true, type: 'number' },
+        up_key_gpio_num: 0,
+        down_key_gpio_num: 0,
+        mpu_sda_gpio_num: 0,
+        mpu_scl_gpio_num: 0,
+        ws2812_gpio_num: 0,
+
+        username: "",
+        password: "",
+        mdns_host_name: "",
+        wifi_ap_ssid: "",
+        wifi_ap_pass: "",
+        wifi_ssid: "",
+        wifi_pass: "",
+        wifi_scan_list_size: 0,
+        wifi_connect_max_retry: 0,
+        ws_recv_buf_size: 0,
+        ws_send_buf_size: 0,
+        msg_buf_recv_size: 0,
+        msg_buf_send_size: 0,
+
+        button_period_ms: 0,
+
+        mpu_command_buf_size: 0,
+        mpu_buf_out_size: 0,
+        mpu_buf_out_to_cnn_size: 0,
+
     })
 
-    const log_text_list = ref([])
-    const dataset_data_view = ref(null)
-    const model_code = ref(`
-// 添加第一个 1D 卷积层
-model.add(tf.layers.conv1d({
-    batchInputShape : [1, dataset.sample_size, 6],  // 输入数据的形状
-    filters: dataset.item_types.length,  // 卷积核的数量
-    kernelSize: 3,  // 卷积核的大小
-    activation: 'relu',  // 激活函数
-}))
-
-// 添加池化层
-model.add(tf.layers.maxPooling1d({
-    poolSize: 2,  // 池化窗口大小
-}))
-
-// 扁平化层，将 2D 输出转为 1D
-model.add(tf.layers.flatten())
-
-// 添加全连接层
-model.add(tf.layers.dense({
-    units: dataset.item_types.length * 2,  // 隐藏层的神经元数
-    activation: 'relu',
-}))
-
-// 输出层
-model.add(tf.layers.dense({
-    units: dataset.item_types.length,  // 分类
-    activation: 'softmax',  // 使用 softmax 激活函数
-}))
-
-// 编译模型
-model.compile({
-    optimizer: tf.train.adam(0.002),
-    loss: 'sparseCategoricalCrossentropy',
-    metrics: ['accuracy'],
-})
-
-trainModel = async () => {
-    await model.fit(X_train, Y_train, {
-        callbacks: tfvis.show.fitCallbacks(container, ['loss', 'acc', 'val_loss', 'val_acc'], { callbacks: ['onEpochEnd'] }),
-        shuffle: true,
-        //batchSize: 20,
-        epochs: 100,  // 设置训练轮数
-        validationData: [X_val, Y_val],  // 使用验证集进行验证
+    const imu_data = reactive({
+        roll: 0,
+        pitch: 0,
+        yaw: 0,
+        ax: 0,
+        ay: 0,
+        az: 0,
+        gx: 0,
+        gy: 0,
+        gz: 0,
     })
-}
-    `)
 
     return {
-        wifi_info, device_info, computed_data, wsmgr, imu_data, stat_data, sort_task_list, user_config, log_text_list, dataset_data_view, model_code
+        wifi_list, wifi_info, device_info, computed_data, stat_data, user_config, imu_data,
     }
 })

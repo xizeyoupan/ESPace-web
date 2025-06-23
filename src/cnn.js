@@ -111,14 +111,14 @@ export const load_data = async (dataset) => {
 
 }
 
-export const train = async (message, dataset) => {
+export const train = async (message, dataset, model_code) => {
     toggle_visor()
 
     await load_data(dataset)
 
     container = { name: 'Model Training', tab: 'Training' }
     model = tf.sequential()
-    eval(default_store.model_code)
+    eval(model_code)
 
     await trainModel()
     message.success("训练完成")

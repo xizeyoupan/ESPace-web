@@ -54,13 +54,13 @@
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-medium leading-6 text-gray-900"
+                class="py-4 text-lg font-semibold leading-6 text-gray-900"
               >
-                {{ t('connect_modal.title') }}
+                {{ t('connect_esp_modal.title') }}
               </DialogTitle>
 
-              <div class="max-w-full mx-auto py-6 flex items-center">
-                <span class="mr-4 text-base">{{ t('connect_modal.enable_custom_address') }}</span>
+              <div class="max-w-full mx-auto py-4 flex items-center">
+                <span class="mr-4 text-base">{{ t('connect_esp_modal.enable_custom_address') }}</span>
 
                 <Switch
                   v-model="default_store.wifi_info.enable_custom_address"
@@ -81,7 +81,24 @@
                 v-model="default_store.wifi_info.custom_address"
                 type="text"
                 :disabled="!default_store.wifi_info.enable_custom_address"
-                :placeholder="t('connect_modal.custom_address_placeholder', ['192.168.4.1', 'wand-esp32'])"
+                :placeholder="t('connect_esp_modal.custom_address_placeholder', ['192.168.4.1', 'esp32-light'])"
+                class="w-full p-2 border border-gray-300 rounded-md"
+              >
+
+              <div class="max-w-full mx-auto py-3 flex items-center">
+                <span class="mr-4 text-base">{{ t('connect_esp_modal.username') }}</span>
+              </div>
+              <input
+                v-model="default_store.user_config.username"
+                type="text"
+                class="w-full p-2 border border-gray-300 rounded-md"
+              >
+              <div class="max-w-full mx-auto py-3 flex items-center">
+                <span class="mr-4 text-base">{{ t('connect_esp_modal.password') }}</span>
+              </div>
+              <input
+                v-model="default_store.user_config.password"
+                type="password"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
 
@@ -91,7 +108,7 @@
                   class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                   @click="connect_device"
                 >
-                  {{ $t('connect_modal.connect') }}
+                  {{ $t('connect_esp_modal.connect') }}
                 </button>
               </div>
             </DialogPanel>
@@ -105,16 +122,12 @@
 <script setup>
 import { NoSymbolIcon, WifiIcon } from '@heroicons/vue/20/solid'
 import { useDefaultStore } from '../store/defaultStore.js'
-import { useI18n } from 'vue-i18n'
+import { i18n } from '../i18n.js'
 import { ref, useTemplateRef } from 'vue'
 import { Dialog, Switch, TransitionRoot, DialogOverlay, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { connect_device } from '../util.js'
 
-const toastRef = useTemplateRef('toastRef')
-const { t } = useI18n()
+const t = i18n.global.t
 const default_store = useDefaultStore()
 const showModal = ref(false)
-
-const show = ref(false)
-
 </script>
