@@ -1,10 +1,52 @@
 <script setup>
-import { ref, onMounted, h, reactive, computed, watchEffect, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useMessage, NMenu, NSelect, NFlex, NInput, NInputNumber, NPopover, NSplit, NDataTable, NButton, NSwitch, NGrid, NGridItem, NCollapseItem, NCollapse } from "naive-ui"
+import { ref, nextTick, h, reactive, computed, watchEffect, watch } from 'vue'
 import { useDefaultStore } from '../store/defaultStore.js'
-import { get } from 'idb-keyval'
+import { get, set } from 'idb-keyval'
 import { toggle_visor, train, save_model } from '../cnn.js'
+import { wsmgr } from '../plugins/ws.js'
+import { i18n } from '../i18n.js'
+import { toast } from '../plugins/toast.js'
+const t = i18n.global.t
+
+const currentPage = ref(1)
+const pageSize = 10
+
+const pagedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return new_dataset.items.slice(start, start + pageSize)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(new_dataset.items.length / pageSize)
+})
+
+const goPrev = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const goNext = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+const typeCurrentPage = ref(1)
+const typePageSize = 10
+
+const pagedItemTypes = computed(() => {
+  const start = (typeCurrentPage.value - 1) * typePageSize
+  return new_dataset.item_types.slice(start, start + typePageSize)
+})
+
+const typeTotalPages = computed(() => {
+  return Math.ceil(new_dataset.item_types.length / typePageSize)
+})
+
+const typeGoPrev = () => {
+  if (typeCurrentPage.value > 1) typeCurrentPage.value--
+}
+
+const typeGoNext = () => {
+  if (typeCurrentPage.value < typeTotalPages.value) typeCurrentPage.value++
+}
 
 const model_code = ref(`
 // 添加第一个 1D 卷积层
@@ -53,7 +95,6 @@ trainModel = async () => {
 }
     `)
 
-const message = useMessage()
 const default_store = useDefaultStore()
 
 const nav = ref("")
@@ -84,11 +125,12 @@ watch(
   (newVal, oldVal) => {
 
     if (checked_model_type_id.value === null) {
+      console.warn("请先选择模型类型")
       return
     }
     // TODO: switch
 
-    let dataset_size = default_store.dataset_data_view.getUint32(1, true)
+    let dataset_size = default_store.dataset_data_view.getFloat32(4, true)
     let ax = []
     let ay = []
     let az = []
@@ -96,12 +138,12 @@ watch(
     let gy = []
     let gz = []
     for (let i = 0; i < dataset_size; i++) {
-      ax.push(default_store.dataset_data_view.getFloat32(5 + (0 * dataset_size + i) * 4, true))
-      ay.push(default_store.dataset_data_view.getFloat32(5 + (1 * dataset_size + i) * 4, true))
-      az.push(default_store.dataset_data_view.getFloat32(5 + (2 * dataset_size + i) * 4, true))
-      gx.push(default_store.dataset_data_view.getFloat32(5 + (3 * dataset_size + i) * 4, true))
-      gy.push(default_store.dataset_data_view.getFloat32(5 + (4 * dataset_size + i) * 4, true))
-      gz.push(default_store.dataset_data_view.getFloat32(5 + (5 * dataset_size + i) * 4, true))
+      ax.push(default_store.dataset_data_view.getFloat32(8 + (0 * dataset_size + i) * 4, true))
+      ay.push(default_store.dataset_data_view.getFloat32(8 + (1 * dataset_size + i) * 4, true))
+      az.push(default_store.dataset_data_view.getFloat32(8 + (2 * dataset_size + i) * 4, true))
+      gx.push(default_store.dataset_data_view.getFloat32(8 + (3 * dataset_size + i) * 4, true))
+      gy.push(default_store.dataset_data_view.getFloat32(8 + (4 * dataset_size + i) * 4, true))
+      gz.push(default_store.dataset_data_view.getFloat32(8 + (5 * dataset_size + i) * 4, true))
     }
 
     let train_num = 0
@@ -157,215 +199,31 @@ watch(
   }
 )
 
-const update_record_ready = (state) => {
-  if (new_dataset.type === null) {
-    message.error("请选择模型类型")
-    return
-  } else if (new_dataset.sample_size == null) {
-    message.error("请输入采样数量")
-    return
-  } else if (new_dataset.sample_tick == null) {
-    message.error("请输入采样间隔")
-    return
-  } else if (new_dataset.sample_size > 500) {
-    message.error("采样数量不能超过500")
-    return
-  }
-
+const update_record_ready = async (state) => {
   if (state) {
-    default_store.wsmgr.ready_to_scan_imu_data(new_dataset)
+    if (new_dataset.type === null) {
+      toast(t('cnn_view.choose_model_type'), "error")
+    } else if (new_dataset.sample_size == null) {
+      toast(t('cnn_view.input_sample_size'), "error")
+    } else if (new_dataset.sample_tick == null) {
+      toast(t('cnn_view.input_sample_tick'), "error")
+    } else {
+      toast(t('toast.loading'), "info")
+      await wsmgr.get_mpu_data_row({ type: new_dataset.type, sample_size: new_dataset.sample_size, sample_tick: new_dataset.sample_tick })
+      toast(t('toast.load_success'), "success")
+      record_ready.value = true
+    }
+  } else {
+    toast(t('toast.loading'), "info")
+    await wsmgr.get_mpu_data_row_stop()
+    toast(t('toast.load_success'), "success")
+    record_ready.value = false
   }
-  record_ready.value = state
 }
-
-const dataset_type_cols = [
-  {
-    type: 'selection',
-    multiple: false,
-  },
-  {
-    title: 'id',
-    key: 'id',
-  },
-  {
-    title: '名称',
-    key: 'comment',
-    render(row, index) {
-      return h(
-        NInput,
-        {
-          value: row.comment,
-          onUpdateValue(v) {
-            new_dataset.item_types[index].comment = v
-          }
-        }
-      )
-    }
-  },
-  {
-    title: '训练集条数',
-    key: 'train_num',
-  },
-  {
-    title: '验证集条数',
-    key: 'validation_num',
-  },
-  {
-    title: '测试集条数',
-    key: 'test_num',
-  },
-  {
-    title: '删除',
-    key: 'actions',
-    render(row) {
-      return h(
-        NButton,
-        {
-          strong: true,
-          tertiary: true,
-          size: 'small',
-          onClick: () => {
-            new_dataset.item_types.splice(row.id, 1)
-            for (let i = row.id; i < new_dataset.item_types.length; i++) {
-              new_dataset.item_types[i].id = i
-            }
-          }
-        },
-        { default: () => '删除' }
-      )
-    }
-  },
-]
-
-const dataset_item_cols = [
-  {
-    title: 'id',
-    key: 'id',
-  },
-  {
-    title: '类型',
-    key: 'type_id',
-    render(row, index) {
-      return h(
-        NSelect,
-        {
-          value: new_dataset.items[index] ? new_dataset.items[index].type_id : "",
-          onUpdateValue(v) {
-            new_dataset.items[index].type_id = v
-          },
-          options: computed(() => {
-            return new_dataset.item_types.map((item) => {
-              return {
-                label: item.comment + " | " + item.id,
-                value: item.id
-              }
-            })
-          }).value,
-        },
-      )
-    }
-  },
-  {
-    title: '采样数量',
-    key: 'sample_size',
-    render(row) {
-      return h(
-        'span',
-        {},
-        row.ax.length
-      )
-    }
-  },
-  // {
-  //   title: '采集时间',
-  //   key: 'timestamp',
-  //   render(row) {
-  //     return h(
-  //       'span',
-  //       {},
-  //       new Date(row.timestamp).toLocaleString(
-  //         undefined,
-  //         {
-  //           year: '2-digit',
-  //           month: '2-digit',
-  //           day: '2-digit',
-  //           hour: '2-digit',
-  //           minute: '2-digit',
-  //           second: '2-digit',
-  //           fractionalSecondDigits: 3,
-  //         }
-  //       )
-  //     )
-  //   }
-  // },
-  {
-    title: '归类',
-    key: 'set_type',
-  },
-  {
-    title: '删除',
-    key: 'actions',
-    render(row) {
-      return h(
-        NButton,
-        {
-          strong: true,
-          tertiary: true,
-          size: 'small',
-          onClick: () => {
-            new_dataset.items.splice(row.id, 1)
-            for (let i = row.id; i < new_dataset.items.length; i++) {
-              new_dataset.items[i].id = i
-            }
-          }
-        },
-        { default: () => '删除' }
-      )
-    }
-  },
-]
 
 const handleNavUpdateValue = (key, item) => {
   nav.value = item.key
 }
-
-const handleModelUpdateValue = (value, option) => {
-  message.info(`value: ${JSON.stringify(value)}`)
-  message.info(`option: ${JSON.stringify(option)}`)
-}
-
-const menuOptions = [
-  {
-    label: "模型",
-    key: "model",
-  },
-  {
-    label: "数据集",
-    key: "new_dataset",
-  },
-]
-
-const model_loading_options = [
-  {
-    label: '云数据库',
-    value: 'db',
-  },
-  {
-    label: '本地文件',
-    value: 'local',
-  },
-  {
-    label: 'flash',
-    value: 'flash',
-  },
-]
-
-const mode_list = ref([
-  {
-    label: 'flash',
-    value: 'flash',
-  },
-])
 
 const mode_type_list = [
   {
@@ -382,10 +240,6 @@ const mode_type_list = [
   },
 ]
 
-const pagination = {
-  pageSize: 10
-}
-
 function gen_dataset_type_item() {
   let data = {
     id: ref(new_dataset.item_types.length),
@@ -397,44 +251,10 @@ function gen_dataset_type_item() {
   }
   data.key = ref(data.id)
   new_dataset.item_types.push(data)
-}
 
-const dataset_type_items_for_table = computed(() => {
-  let data = new_dataset.item_types.map((item) => {
-
-    let train_num = 0
-    let validation_num = 0
-    let test_num = 0
-
-    new_dataset.items.forEach((each) => {
-      if (each.type_id != item.id) {
-        return
-      }
-
-      if (each.set_type === "train") {
-        train_num++
-      } else if (each.set_type === "validation") {
-        validation_num++
-      } else if (each.set_type === "test") {
-        test_num++
-      }
-    })
-
-    item.train_num = train_num
-    item.validation_num = validation_num
-    item.test_num = test_num
-    return item
+  nextTick(() => {
+    typeCurrentPage.value = Math.ceil(new_dataset.item_types.length / typePageSize)
   })
-
-  return data
-})
-
-const handle_type_row_check = (keys, rows, meta) => {
-  //选中类别
-  if (meta.action === "check") {
-    checked_model_type_id.value = rows[0].id
-    console.log("checked_model_type_id: ", checked_model_type_id.value, ", comment: ", new_dataset.item_types[checked_model_type_id.value].comment)
-  }
 }
 
 const load_dataset = () => {
@@ -491,223 +311,316 @@ const save_dataset = () => {
 }
 
 const train_model = async () => {
-  await train(message, new_dataset, model_code.value)
-}
-
-const predict = () => {
-
+  await train(new_dataset, model_code.value)
 }
 
 </script>
 
 <template>
-  <n-menu mode="horizontal" :options="menuOptions" responsive @update:value="handleNavUpdateValue" />
+  <div class="flex space-x-4 border-b mb-4">
+    <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
+      :class="{ 'border-blue-500 font-semibold': nav === 'model' }"
+      @click="handleNavUpdateValue('model', { key: 'model' })">
+      模型
+    </button>
+    <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
+      :class="{ 'border-blue-500 font-semibold': nav === 'new_dataset' }"
+      @click="handleNavUpdateValue('new_dataset', { key: 'new_dataset' })">
+      数据集
+    </button>
+  </div>
+
   <div class="cnn-container">
     <div v-if="!nav">
-      <p>
+      <p class="indent-8 mb-2">
         卷积神经网络是一种深度学习模型，主要用于处理和分析图像数据。它的设计灵感源自于对生物视觉系统的理解，模拟了视觉皮层的结构和功能。CNN通过一系列的卷积层、池化层和全连接层构建而成，每一层都有特定的功能和作用。
       </p>
-      <p>点按上方导航按钮以开始。</p>
+      <p class="indent-8">点按上方导航按钮以开始。</p>
     </div>
 
-    <div v-else-if="nav === `model`">
-      <n-grid y-gap="12" x-gap="12" :cols="2">
-        <n-grid-item>
-          <n-flex align="center">
-            <span>数据集名称</span>
-            <n-input v-model:value="new_dataset.id" type="text" placeholder="请前往数据集选项" disabled
-              style="max-width: 50%;" />
-          </n-flex>
-        </n-grid-item>
+    <!-- 模型设置 -->
+    <div v-if="nav === 'model'" class="space-y-4">
 
-        <n-grid-item>
-          <n-flex align="center">
-            <n-button strong secondary type="info" @click="train_model">
-              训练
-            </n-button>
-            <n-button strong secondary type="success" @click="predict">
-              预测
-            </n-button>
-            <n-button strong secondary type="info" @click="toggle_visor">
-              显示面板
-            </n-button>
-            <n-button strong secondary type="info" @click="save_model">
-              保存
-            </n-button>
-          </n-flex>
-        </n-grid-item>
-      </n-grid>
+      <!-- 第一行：数据集名称、操作按钮 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-600">数据集名称</span>
+          <input type="text" v-model="new_dataset.id" disabled placeholder="请前往数据集选项"
+            class="border px-2 py-1 rounded w-1/2 bg-gray-100 text-sm" />
+        </div>
 
-      <div style="margin:20px 20px 20px 0; ">
-        <n-collapse>
-          <n-collapse-item title="模型及训练代码" name="code">
-            <n-input v-model:value="model_code" type="textarea" placeholder="基本的 Textarea" :autosize="{ minRows: 5 }"
-              :input-props="{ spellcheck: false }" />
-          </n-collapse-item>
-        </n-collapse>
+        <div class="flex flex-wrap gap-2">
+          <button @click="train_model" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
+            训练
+          </button>
+          <button @click="predict" class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm">
+            预测
+          </button>
+          <button @click="toggle_visor" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
+            显示面板
+          </button>
+          <button @click="save_model" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
+            保存
+          </button>
+        </div>
+      </div>
+
+      <!-- 模型代码编辑 -->
+      <div>
+        <details class="bg-gray-100 rounded p-4">
+          <summary class="cursor-pointer font-semibold text-sm mb-2">
+            模型及训练代码
+          </summary>
+          <textarea v-model="model_code" spellcheck="false"
+            class="w-full h-80 border rounded p-2 font-mono text-sm bg-white"></textarea>
+        </details>
       </div>
     </div>
 
+    <div v-if="nav === 'new_dataset'" class="space-y-4">
+      <!-- 表单容器 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
+
+        <!-- 模型名称 -->
+        <div class="flex flex-col">
+          <label class="text-gray-700 mb-1">模型名称</label>
+          <input v-model="new_dataset.id" type="text" placeholder="模型的 ID"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- 导入 / 保存 -->
+        <div class="flex gap-5 py-4 px-5">
+          <button @click="load_dataset" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-sm">
+            导入
+          </button>
+          <button @click="save_dataset" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow-sm">
+            保存
+          </button>
+        </div>
+
+        <!-- 模型简介 -->
+        <div class="flex flex-col">
+          <label class="text-gray-700 mb-1">模型简介</label>
+          <input v-model="new_dataset.desc" type="text" placeholder="模型的描述"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- 模型类别 -->
+        <div class="flex flex-col">
+          <label class="text-gray-700 mb-1">模型类别</label>
+          <select v-model="new_dataset.type" @change="() => { record_ready = false }"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option v-for="item in mode_type_list" :value="item.value" :key="item.id">{{ item.label }}</option>
+          </select>
+          <p v-if="new_dataset.type !== null" class="text-sm text-gray-500 mt-1">
+            {{ mode_type_list[new_dataset.type].desc }}
+          </p>
+        </div>
+
+        <!-- 采样间隔 -->
+        <div class="flex flex-col">
+          <label class="text-gray-700 mb-1">采样间隔（ms）</label>
+          <input v-model.number="new_dataset.sample_tick" type="number" min="1" @input="() => { record_ready = false }"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <p class="text-sm text-gray-500 mt-1">每隔几毫秒采样一次</p>
+        </div>
+
+        <!-- 采样数量 -->
+        <div class="flex flex-col">
+          <label class="text-gray-700 mb-1">采样数量</label>
+          <input v-model.number="new_dataset.sample_size" type="number" min="10" max="500"
+            @input="() => { record_ready = false }"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <p class="text-sm text-gray-500 mt-1">
+            单次采样等效时长：
+            {{ Number(new_dataset.sample_size || 0) * Number(new_dataset.sample_tick || 0) }} ms
+          </p>
+        </div>
+
+        <!-- 数据集比例设置 -->
+        <div class="md:col-span-2">
+          <label class="text-gray-700 mb-2 block">数据集比例</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="flex flex-col">
+              <input v-model.number="new_dataset.protion.train" type="number" placeholder="train"
+                class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <span class="text-sm text-gray-500 mt-1">训练集</span>
+            </div>
+            <div class="flex flex-col">
+              <input v-model.number="new_dataset.protion.validation" type="number" placeholder="validation"
+                class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <span class="text-sm text-gray-500 mt-1">验证集</span>
+            </div>
+            <div class="flex flex-col">
+              <input v-model.number="new_dataset.protion.test" type="number" placeholder="test"
+                class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <span class="text-sm text-gray-500 mt-1">测试集</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
 
-    <div v-else-if="nav === `new_dataset`">
-      <n-grid y-gap="12" x-gap="12" :cols="2">
-        <n-grid-item>
-          <n-flex align="center">
-            <span>模型名称</span>
-            <n-input v-model:value="new_dataset.id" type="text" placeholder="模型的id" style="max-width: 50%;" />
-          </n-flex>
-        </n-grid-item>
+      <!-- 双栏区域 -->
+      <div class="flex flex-col md:flex-row gap-4 mt-4">
+        <!-- 左侧：类别管理 -->
+        <div class="w-full md:w-1/2 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-base font-semibold">类别</span>
+            <button @click="gen_dataset_type_item"
+              class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-2 py-1 rounded">
+              新增
+            </button>
+          </div>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <n-button strong secondary type="info" @click="load_dataset">
-              导入
-            </n-button>
-            <n-button strong secondary type="success" @click="save_dataset">
-              保存
-            </n-button>
-          </n-flex>
-        </n-grid-item>
+          <!-- 类别项表格 -->
+          <table class="table-auto w-full border mt-6 text-sm">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="px-4 py-2">选择</th>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">名称</th>
+                <th class="px-4 py-2">训练集</th>
+                <th class="px-4 py-2">验证集</th>
+                <th class="px-4 py-2">测试集</th>
+                <th class="px-4 py-2">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in pagedItemTypes" :key="item.id"
+                :class="{ 'bg-blue-50': item.id === checked_model_type_id }">
+                <td class="px-4 py-2">
+                  <input type="radio" name="type_select" :value="item.id" v-model="checked_model_type_id" />
+                </td>
+                <td class="px-4 py-2">{{ item.id }}</td>
+                <td class="px-4 py-2">
+                  <input v-model="item.comment" class="border px-2 py-1 rounded w-full" placeholder="类别名称" />
+                </td>
+                <td class="px-4 py-2">{{ item.train_num }}</td>
+                <td class="px-4 py-2">{{ item.validation_num }}</td>
+                <td class="px-4 py-2">{{ item.test_num }}</td>
+                <td class="px-4 py-2">
+                  <button class="text-red-500 hover:underline" @click="() => {
+                    new_dataset.item_types.splice(item.id, 1)
+                    for (let i = 0; i < new_dataset.item_types.length; i++) {
+                      new_dataset.item_types[i].id = i
+                    }
+                    if (checked_model_type_id === item.id) checked_model_type_id = null
+                    if (pagedItemTypes.value.length === 0 && typeCurrentPage.value > 1) {
+                      typeCurrentPage.value--
+                    }
+                  }">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <span>模型简介</span>
-            <n-input v-model:value="new_dataset.desc" type="text" placeholder="模型的介绍" style="max-width: 60%;" />
-          </n-flex>
-        </n-grid-item>
+          <!-- 分页控制（类别项） -->
+          <div class="flex items-center justify-center gap-2 mt-4">
+            <button @click="typeGoPrev" :disabled="typeCurrentPage === 1"
+              class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50">
+              上一页
+            </button>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <span>模型类别</span>
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-select v-model:value="new_dataset.type" placeholder="选择模型类型" style="width: 30%;"
-                  :options="mode_type_list" @update:value="(value) => { record_ready = false }" />
-              </template>
-              <template v-if="new_dataset.type != null">
-                {{ mode_type_list[new_dataset.type].desc }}
-              </template>
-            </n-popover>
-          </n-flex>
-        </n-grid-item>
+            <span class="text-sm text-gray-700">
+              第 {{ typeCurrentPage }} 页 / 共 {{ typeTotalPages }} 页
+            </span>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <span>采样间隔</span>
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input-number v-model:value="new_dataset.sample_tick" style="width: 30%;" clearable
-                  placeholder="请输入采样间隔(ms)" :min="1" @update:value="(value) => { record_ready = false }" />
-              </template>
-              每隔几毫秒进行一次采样
-            </n-popover>
-          </n-flex>
-        </n-grid-item>
+            <button @click="typeGoNext" :disabled="typeCurrentPage === typeTotalPages"
+              class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50">
+              下一页
+            </button>
+          </div>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <span>采样数量</span>
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input-number v-model:value="new_dataset.sample_size" style="width: 30%;" clearable
-                  placeholder="请输入数据数量" :min="10" :max="500" @update:value="(value) => { record_ready = false }" />
-              </template>
-              对于指令模型，如果一个周期内实际采样的点数与该值不一致，则会超采或降采样到这个值；对于连续模型，这个值就是一次推理采样到的数量。
-            </n-popover>
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input style="width: 30%;" disabled
-                  :value="Number(new_dataset.sample_size) * Number(new_dataset.sample_tick) + ' ms'" />
-              </template>
-              单次采样等效时长
-            </n-popover>
-          </n-flex>
-        </n-grid-item>
+        </div>
 
-        <n-grid-item>
-          <n-flex align="center">
-            <span>训练集、验证集、测试集相对比例</span>
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.train" style="width: 20%;" />
-              </template>
-              train
-            </n-popover>
+        <!-- 右侧：采样项管理 -->
+        <div class="w-full md:w-1/2 space-y-2">
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="text-base font-semibold">采集状态：</span>
 
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.validation" style="width: 20%;" />
-              </template>
-              validation
-            </n-popover>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="checsskbox" class="form-checkbox" :checked="record_ready"
+                @click.prevent="(e) => update_record_ready(e.target.checked)" />
+              <span class="ml-2 text-sm">启用</span>
+            </label>
+            <button @click="() => { new_dataset.items.length = 0 }"
+              class="bg-gray-500 hover:bg-gray-600 text-white text-sm px-2 py-1 rounded">
+              清空
+            </button>
+            <button @click="() => {
+              new_dataset.items = new_dataset.items.filter(item => item.type_id !== checked_model_type_id)
+              for (let i = 0; i < new_dataset.items.length; i++) new_dataset.items[i].id = i
+            }" class="bg-red-500 hover:bg-red-600 text-white text-sm px-2 py-1 rounded">
+              删除选中类型
+            </button>
+          </div>
 
-            <n-popover trigger="hover" placement="bottom">
-              <template #trigger>
-                <n-input-number v-model:value="new_dataset.protion.test" style="width: 20%;" />
-              </template>
-              test
-            </n-popover>
-          </n-flex>
-        </n-grid-item>
-      </n-grid>
+          <!-- 数据项表格 -->
+          <table class="table-auto w-full border mt-6 text-sm">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">类型</th>
+                <th class="px-4 py-2">采样数量</th>
+                <th class="px-4 py-2">归类</th>
+                <th class="px-4 py-2">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in pagedItems" :key="item.id">
+                <td class="px-4 py-2">{{ item.id }}</td>
 
-      <n-split direction="horizontal" style="margin-top: 20px;">
-        <template #1>
-          <n-flex vertical style="padding-right: 10px;">
-            <n-flex align="center">
-              <span style="font-weight: normal;">类别</span>
-              <n-button style="margin-left: 10px;" strong secondary type="info" @click="gen_dataset_type_item">
-                新增
-              </n-button>
-            </n-flex>
-            <n-data-table :columns="dataset_type_cols" :pagination="pagination" :data="dataset_type_items_for_table"
-              @update:checked-row-keys="handle_type_row_check" />
-          </n-flex>
-        </template>
-        <template #2>
-          <n-flex vertical style="padding-left: 10px;">
-            <n-flex align="center">
-              <span>
-                采集状态：
-              </span>
-              <n-switch :value="record_ready" @update:value="update_record_ready" />
-              <n-button style="margin-left: 10px;" strong secondary type="info"
-                @click="() => { new_dataset.items.length = 0 }">
-                清空
-              </n-button>
-              <n-button style="margin-left: 10px;" strong secondary type="info" @click="() => {
-                new_dataset.items = new_dataset.items.filter(
-                  (item) => {
-                    return item.type_id != checked_model_type_id
-                  }
-                )
-                for (let i = 0; i < new_dataset.items.length; i++) {
-                  new_dataset.items[i].id = i
-                }
-              }">
-                删除选中类型
-              </n-button>
-            </n-flex>
+                <td class="px-4 py-2">
+                  <select v-model="item.type_id" class="border rounded px-2 py-1">
+                    <option v-for="type in new_dataset.item_types" :key="type.id" :value="type.id">
+                      {{ type.comment }} | {{ type.id }}
+                    </option>
+                  </select>
+                </td>
 
-            <n-data-table :columns="dataset_item_cols" :pagination="pagination" :data="new_dataset.items"
-              @update:checked-row-keys="handle_type_row_check" />
-          </n-flex>
-        </template>
-      </n-split>
+                <td class="px-4 py-2">{{ item.ax.length }}</td>
+                <td class="px-4 py-2">{{ item.set_type }}</td>
+
+                <td class="px-4 py-2">
+                  <button class="text-red-500 hover:underline" @click="() => {
+                    new_dataset.items.splice(item.id, 1)
+                    for (let i = 0; i < new_dataset.items.length; i++) {
+                      new_dataset.items[i].id = i
+                    }
+                    if (pagedItems.length === 0 && currentPage > 1) {
+                      currentPage--
+                    }
+                  }">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- 分页控制 -->
+          <div class="flex items-center justify-center gap-2 mt-4">
+            <button @click="goPrev" :disabled="currentPage === 1"
+              class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50">
+              上一页
+            </button>
+
+            <span class="text-sm text-gray-700">
+              第 {{ currentPage }} 页 / 共 {{ totalPages }} 页
+            </span>
+
+            <button @click="goNext" :disabled="currentPage === totalPages"
+              class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50">
+              下一页
+            </button>
+          </div>
+
+        </div>
+      </div>
     </div>
+
   </div>
 </template>
-
-<style scoped>
-.cnn-container {
-  font-weight: lighter;
-  font-size: .9rem;
-  padding: 0 20px;
-}
-
-p {
-  text-indent: 1.8rem;
-  margin: 0.45rem 0;
-}
-</style>

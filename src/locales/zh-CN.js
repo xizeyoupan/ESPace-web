@@ -1,13 +1,17 @@
 export default {
     app_name: 'ESPace',
-    fresh: '刷新',
-    connect: "连接",
-
+    button: {
+        fresh: '刷新',
+        connect: "连接",
+        reset: "重置",
+    },
     nav: {
         wifi_info: 'WiFi信息',
         about: '本机信息',
         config: '配置',
         stat: '状态',
+        mpu: '姿态检测',
+        cnn: 'CNN',
     },
     language: "设置语言",
     device: {
@@ -55,6 +59,8 @@ export default {
         wifi_connecting: "正在连接WiFi",
         wifi_name_empty: "WiFi名称不能为空",
         wifi_list_loaded: "WiFi列表加载成功",
+        train_start: "开始训练模型",
+        train_success: "模型训练完成",
     },
     about: {
         prefixURL: "prefixURL",
@@ -125,5 +131,10 @@ export default {
         ws_send_max: "WebSocket 最大发送长度",
         ws_recv_queue: "WebSocket 接收队列长度",
         ws_send_queue: "WebSocket 发送队列长度"
+    },
+    cnn_view: {
+        choose_model_type: "请选择模型类型",
+        input_sample_size: "请输入样本大小",
+        input_sample_tick: "请输入样本采样间隔",
     }
 }

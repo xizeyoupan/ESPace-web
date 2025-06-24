@@ -108,7 +108,9 @@ export const useDefaultStore = defineStore('default', () => {
         gz: 0,
     })
 
+    const dataset_data_view = ref(new DataView(new ArrayBuffer(0)))
+
     return {
-        wifi_list, wifi_info, device_info, computed_data, stat_data, user_config, imu_data,
+        wifi_list, wifi_info, device_info, computed_data, stat_data, user_config, imu_data, dataset_data_view
     }
 })

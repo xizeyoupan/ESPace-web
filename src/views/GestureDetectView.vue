@@ -1,8 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useDefaultStore } from '../store/defaultStore.js'
-import { storeToRefs } from 'pinia'
-import { useMessage, NSwitch, NButton, NGrid, NGridItem } from "naive-ui"
 import { wsmgr } from '../plugins/ws.js'
 import { i18n } from '../i18n.js'
 import { toast } from '../plugins/toast.js'
@@ -317,7 +315,7 @@ const reset_imu = async () => {
     <div>
       <button @click="reset_imu"
         class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-4 rounded-full transition">
-        重置
+        {{ t('button.reset') }}
       </button>
     </div>
 

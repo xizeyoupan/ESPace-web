@@ -91,7 +91,7 @@ get_wifi_info()
       {{ t('wifi_info_view.title') }}
     </h2>
     <button class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" @click="get_wifi_info">
-      {{ t('fresh') }}
+      {{ t('button.fresh') }}
     </button>
   </div>
 
@@ -140,7 +140,7 @@ get_wifi_info()
       get_wifi_list()
     }
     ">
-      {{ t('fresh') }}
+      {{ t('button.fresh') }}
     </button>
   </div>
 
@@ -171,7 +171,7 @@ get_wifi_info()
         default_store.wifi_info.input_ssid = wifi.SSID
         default_store.wifi_info.input_password = ''
       }">
-        {{ t('connect') }}
+        {{ t('button.connect') }}
       </button>
     </div>
   </div>

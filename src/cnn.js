@@ -4,6 +4,9 @@
 import { useDefaultStore } from './store/defaultStore.js'
 import { reactive, ref, toRef, toRefs, toRaw } from 'vue'
 import pinia from './store/index.js'
+import { toast } from './plugins/toast.js'
+import { i18n } from './i18n.js'
+const t = i18n.global.t
 
 const default_store = useDefaultStore(pinia)
 
@@ -111,17 +114,31 @@ export const load_data = async (dataset) => {
 
 }
 
-export const train = async (message, dataset, model_code) => {
+export const train = async (dataset, model_code) => {
+    toast(t('toast.train_start'), 'info')
+
     toggle_visor()
 
     await load_data(dataset)
+
+    try {
+        visorInstance.setActiveTab('Training')
+    } catch (e) {
+        console.warn('Error setting active tab:', e)
+    }
 
     container = { name: 'Model Training', tab: 'Training' }
     model = tf.sequential()
     eval(model_code)
 
     await trainModel()
-    message.success("训练完成")
+    toast(t('toast.train_success'), 'success')
+
+    container = {
+        name: 'Model Summary',
+        tab: 'Model Inspection'
+    }
+    tfvis.show.modelSummary(container, model)
 
     const result = model.evaluate(X_test, Y_test)
 

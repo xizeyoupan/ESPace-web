@@ -15,10 +15,9 @@
     "@tailwindcss/vite": "^4.1.4",
     "idb-keyval": "^6.2.1",
     "ky": "^1.7.4",
-    "naive-ui": "^2.42.0",
     "pinia": "^2.3.0",
     "tailwindcss": "^4.1.4",
-    "vue": "^3.5.13",
+    "vue": "^3.5.17",
     "vue-i18n": "^10.0.7",
     "vue-router": "4"
   },

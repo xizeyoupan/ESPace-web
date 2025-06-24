@@ -79,23 +79,43 @@ class WebSocketManager {
             default_store.wifi_info.isOnline = true
             this.heartCheck.reset()
 
-            try {
-                const msg = JSON.parse(event.data)
-                const { type, requestId, payload, error } = msg
+            if (event.data instanceof ArrayBuffer) {
+                let view = new DataView(event.data)
+                const data_type = view.getFloat32(0)
 
-                if (requestId && this.pendingRequests.has(requestId)) {
-                    const { resolve, reject, timeout } = this.pendingRequests.get(requestId)
-                    clearTimeout(timeout)
-                    this.pendingRequests.delete(requestId)
-                    error ? reject(error) : resolve(payload)
-                } else if (type && this.messageHandlers.has(type)) {
-                    this.messageHandlers.get(type)(payload)
-                } else {
-                    console.warn("未处理的消息：", msg)
+                switch (data_type) {
+                    case 0:
+                        let dataset_size = view.getFloat32(4, true)
+                        default_store.dataset_data_view = view
+                        console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
+                        break
+                    default:
+                        console.warn("未知数据类型:", data_type)
+                        console.log("event.data:", event.data)
+                        console.log("size:", event.data.byteLength)
+                        break
                 }
-            } catch (e) {
-                console.error("消息解析失败：", e)
+
+            } else {
+                try {
+                    const msg = JSON.parse(event.data)
+                    const { type, requestId, payload, error } = msg
+
+                    if (requestId && this.pendingRequests.has(requestId)) {
+                        const { resolve, reject, timeout } = this.pendingRequests.get(requestId)
+                        clearTimeout(timeout)
+                        this.pendingRequests.delete(requestId)
+                        error ? reject(error) : resolve(payload)
+                    } else if (type && this.messageHandlers.has(type)) {
+                        this.messageHandlers.get(type)(payload)
+                    } else {
+                        console.warn("未处理的消息：", msg)
+                    }
+                } catch (e) {
+                    console.error("消息解析失败：", e)
+                }
             }
+
         }
 
         this.ws.onclose = () => {
@@ -120,15 +140,6 @@ class WebSocketManager {
             console.log("正在重连...")
             this.connect()
         }, 3000)
-    }
-
-    sendMessage(message) {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(message)
-            console.log("WebSocket 发送消息:", JSON.parse(message))
-        } else {
-            console.error("WebSocket 连接未打开，消息发送失败")
-        }
     }
 
     close() {
@@ -243,6 +254,16 @@ class WebSocketManager {
         console.log("重置IMU成功", payload)
     }
 
+    async get_mpu_data_row(data) {
+        let payload = await this.sendRequest('get_mpu_data_row', { data })
+        console.log("请求MPU采集成功", payload)
+    }
+
+    async get_mpu_data_row_stop() {
+        let payload = await this.sendRequest('get_mpu_data_row_stop')
+        console.log("停止MPU采集成功", payload)
+    }
+
     _generateRequestId() {
         return `req_${Date.now()}_${this.requestCounter++}`
     }
@@ -250,7 +271,10 @@ class WebSocketManager {
     sendRequest(type, payload = {}, timeoutMs = 2000) {
         if (!default_store.wifi_info.isOnline) {
             return Promise.reject("设备离线")
+        } else if (this.ws.readyState !== WebSocket.OPEN) {
+            return Promise.reject("WebSocket未连接")
         }
+
         const requestId = this._generateRequestId()
         const msg = { type, requestId, payload }
 
