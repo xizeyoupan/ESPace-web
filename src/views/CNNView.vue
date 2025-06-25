@@ -6,6 +6,7 @@ import { toggle_visor, train, save_model } from '../cnn.js'
 import { wsmgr } from '../plugins/ws.js'
 import { i18n } from '../i18n.js'
 import { toast } from '../plugins/toast.js'
+import { calcXORChecksum } from '../util.js'
 const t = i18n.global.t
 
 const currentPage = ref(1)
@@ -98,8 +99,6 @@ trainModel = async () => {
 const default_store = useDefaultStore()
 
 const nav = ref("")
-const model_loading_method = ref(null)
-const model_id = ref(null)
 const record_ready = ref(false)
 const checked_model_type_id = ref(null)
 
@@ -128,7 +127,6 @@ watch(
       console.warn("请先选择模型类型")
       return
     }
-    // TODO: switch
 
     let dataset_size = default_store.dataset_data_view.getFloat32(4, true)
     let ax = []
@@ -149,8 +147,12 @@ watch(
     let train_num = 0
     let validation_num = 0
     let test_num = 0
+    let total_num = 0
 
     new_dataset.items.forEach((item) => {
+      if (item.type_id !== checked_model_type_id.value) return
+
+      total_num++
       if (item.set_type === "train") {
         train_num++
       } else if (item.set_type === "validation") {
@@ -164,15 +166,15 @@ watch(
     let set_type_num = [
       {
         type: "train",
-        protion_diff: train_num / new_dataset.items.length - new_dataset.protion.train / total_portion
+        protion_diff: train_num / total_num - new_dataset.protion.train / total_portion
       },
       {
         type: "validation",
-        protion_diff: validation_num / new_dataset.items.length - new_dataset.protion.validation / total_portion
+        protion_diff: validation_num / total_num - new_dataset.protion.validation / total_portion
       },
       {
         type: "test",
-        protion_diff: test_num / new_dataset.items.length - new_dataset.protion.test / total_portion
+        protion_diff: test_num / total_num - new_dataset.protion.test / total_portion
       }
     ]
 
@@ -196,8 +198,28 @@ watch(
 
     new_dataset.items.push(item)
     // console.log("new_dataset item: ", item)
-  }
-)
+  })
+
+watchEffect(() => {
+  // calculate train_num, validation_num, test_num of each item_type
+  new_dataset.item_types.forEach((item) => {
+    item.train_num = 0
+    item.validation_num = 0
+    item.test_num = 0
+
+    new_dataset.items.forEach((dataset_item) => {
+      if (dataset_item.type_id === item.id) {
+        if (dataset_item.set_type === "train") {
+          item.train_num++
+        } else if (dataset_item.set_type === "validation") {
+          item.validation_num++
+        } else if (dataset_item.set_type === "test") {
+          item.test_num++
+        }
+      }
+    })
+  })
+})
 
 const update_record_ready = async (state) => {
   if (state) {
@@ -219,10 +241,6 @@ const update_record_ready = async (state) => {
     toast(t('toast.load_success'), "success")
     record_ready.value = false
   }
-}
-
-const handleNavUpdateValue = (key, item) => {
-  nav.value = item.key
 }
 
 const mode_type_list = [
@@ -314,19 +332,96 @@ const train_model = async () => {
   await train(new_dataset, model_code.value)
 }
 
+const fileInput = ref(null)
+const models = ref([]) // 模型名称数组（如 ['model1.tflite', 'model2.tflite']）
+const selectedModel = ref(null)
+
+const uploadModel = async () => {
+  const file = fileInput.value?.files?.[0]
+  if (!file) {
+    toast(t('cnn_view.select_model_file'), 'error')
+    return
+  }
+
+  const xor = await calcXORChecksum(file)
+  const url = `${default_store.wifi_info.host}/upload_model?token=${default_store.user_config.username}:${default_store.user_config.password}&xor=${xor}&name=${encodeURIComponent(file.name)}`
+
+  const xhr = new XMLHttpRequest()
+  xhr.open("POST", url)
+  xhr.timeout = 60000
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      console.log('model上传成功:', xhr.responseText)
+      toast(t('config.ota_success'), 'success')
+    } else {
+      toast(t('config.ota_error'), 'error')
+      console.error('model上传失败:', xhr.status, xhr.statusText)
+    }
+  }
+
+  xhr.onerror = function () {
+    toast(t('config.ota_error'), 'error')
+  }
+
+  xhr.ontimeout = function () {
+    console.error('请求超时')
+  }
+
+  xhr.send(file)
+}
+
+function fetchModelList() {
+  fetch('/api/list_models')
+    .then(res => res.json())
+    .then(data => {
+      models.value = data.models // 假设后端返回 { models: ['a.tflite', 'b.tflite'] }
+    })
+    .catch(err => {
+      console.error(err)
+      alert('获取模型列表失败')
+    })
+}
+
+function deleteModel(name) {
+  if (!confirm(`确定要删除模型 "${name}" 吗？`)) return
+
+  fetch(`/api/delete_model?name=${encodeURIComponent(name)}`, {
+    method: 'DELETE'
+  })
+    .then(res => res.json())
+    .then(() => {
+      alert('删除成功')
+      fetchModelList()
+    })
+    .catch(err => {
+      console.error(err)
+      alert('删除失败')
+    })
+}
+
+function downloadModel(name) {
+  window.open(`/api/download_model?name=${encodeURIComponent(name)}`, '_blank')
+}
+
 </script>
 
 <template>
   <div class="flex space-x-4 border-b mb-4">
     <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
-      :class="{ 'border-blue-500 font-semibold': nav === 'model' }"
-      @click="handleNavUpdateValue('model', { key: 'model' })">
-      模型
+      :class="{ 'border-blue-500 font-semibold': nav === 'model' }" @click="nav = 'model'">
+      {{ t('cnn_view.train') }}
     </button>
     <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
-      :class="{ 'border-blue-500 font-semibold': nav === 'new_dataset' }"
-      @click="handleNavUpdateValue('new_dataset', { key: 'new_dataset' })">
-      数据集
+      :class="{ 'border-blue-500 font-semibold': nav === 'new_dataset' }" @click="nav = 'new_dataset'">
+      {{ t('cnn_view.dataset') }}
+    </button>
+    <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
+      :class="{ 'border-blue-500 font-semibold': nav === 'predict' }" @click="nav = 'predict'">
+      {{ t('cnn_view.predict') }}
+    </button>
+    <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
+      :class="{ 'border-blue-500 font-semibold': nav === 'model_manage' }" @click="nav = 'model_manage'">
+      {{ t('cnn_view.model_manage') }}
     </button>
   </div>
 
@@ -359,7 +454,8 @@ const train_model = async () => {
           <button @click="toggle_visor" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
             显示面板
           </button>
-          <button @click="save_model" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
+          <button @click="save_model(new_dataset.id)"
+            class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
             保存
           </button>
         </div>
@@ -369,7 +465,7 @@ const train_model = async () => {
       <div>
         <details class="bg-gray-100 rounded p-4">
           <summary class="cursor-pointer font-semibold text-sm mb-2">
-            模型及训练代码
+            训练代码
           </summary>
           <textarea v-model="model_code" spellcheck="false"
             class="w-full h-80 border rounded p-2 font-mono text-sm bg-white"></textarea>
@@ -379,7 +475,7 @@ const train_model = async () => {
 
     <div v-if="nav === 'new_dataset'" class="space-y-4">
       <!-- 表单容器 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-base">
 
         <!-- 模型名称 -->
         <div class="flex flex-col">
@@ -408,8 +504,13 @@ const train_model = async () => {
         <!-- 模型类别 -->
         <div class="flex flex-col">
           <label class="text-gray-700 mb-1">模型类别</label>
-          <select v-model="new_dataset.type" @change="() => { record_ready = false }"
-            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select v-model="new_dataset.type" @change="async () => {
+            if (record_ready) {
+              await wsmgr.get_mpu_data_row_stop()
+              record_ready = false
+              toast(t('toast.stop_sampling'), 'info')
+            }
+          }" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option v-for="item in mode_type_list" :value="item.value" :key="item.id">{{ item.label }}</option>
           </select>
           <p v-if="new_dataset.type !== null" class="text-sm text-gray-500 mt-1">
@@ -420,17 +521,26 @@ const train_model = async () => {
         <!-- 采样间隔 -->
         <div class="flex flex-col">
           <label class="text-gray-700 mb-1">采样间隔（ms）</label>
-          <input v-model.number="new_dataset.sample_tick" type="number" min="1" @input="() => { record_ready = false }"
-            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input v-model.number="new_dataset.sample_tick" type="number" min="1" @input="async () => {
+            if (record_ready) {
+              await wsmgr.get_mpu_data_row_stop()
+              record_ready = false
+              toast(t('toast.stop_sampling'), 'info')
+            }
+          }" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <p class="text-sm text-gray-500 mt-1">每隔几毫秒采样一次</p>
         </div>
 
         <!-- 采样数量 -->
         <div class="flex flex-col">
           <label class="text-gray-700 mb-1">采样数量</label>
-          <input v-model.number="new_dataset.sample_size" type="number" min="10" max="500"
-            @input="() => { record_ready = false }"
-            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input v-model.number="new_dataset.sample_size" type="number" min="10" max="500" @input="async () => {
+            if (record_ready) {
+              await wsmgr.get_mpu_data_row_stop()
+              record_ready = false
+              toast(t('toast.stop_sampling'), 'info')
+            }
+          }" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <p class="text-sm text-gray-500 mt-1">
             单次采样等效时长：
             {{ Number(new_dataset.sample_size || 0) * Number(new_dataset.sample_tick || 0) }} ms
@@ -506,8 +616,8 @@ const train_model = async () => {
                       new_dataset.item_types[i].id = i
                     }
                     if (checked_model_type_id === item.id) checked_model_type_id = null
-                    if (pagedItemTypes.value.length === 0 && typeCurrentPage.value > 1) {
-                      typeCurrentPage.value--
+                    if (pagedItemTypes.length === 0 && typeCurrentPage > 1) {
+                      typeCurrentPage--
                     }
                   }">
                     删除
@@ -622,5 +732,66 @@ const train_model = async () => {
       </div>
     </div>
 
+    <div v-if="nav === 'model_manage'" class="space-y-4">
+      <!-- 文件上传 -->
+      <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
+        <div>
+          <input ref="fileInput" type="file" accept=".tflite"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-600 dark:file:text-violet-100 dark:hover:file:bg-violet-500" />
+        </div>
+        <button @click="uploadModel" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
+          {{ t('cnn_view.upload_model') }}
+        </button>
+        <button @click="fetchModelList" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
+          列出模型
+        </button>
+      </div>
+
+      <!-- 模型列表 -->
+      <div v-if="models.length > 0" class="border rounded p-2 space-y-2 text-sm">
+        <div v-for="(model, index) in models" :key="model" class="flex justify-between items-center border-b py-1">
+          <label class="flex items-center gap-2">
+            <input type="radio" name="selectedModel" :value="model" v-model="selectedModel" />
+            {{ model }}
+          </label>
+          <div class="flex gap-2">
+            <button @click="downloadModel(model)" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+              下载
+            </button>
+            <button @click="deleteModel(model)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">
+              删除
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div v-if="nav === 'predict'" class="space-y-4">
+      <div class="space-y-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <!-- JSON & BIN file input -->
+          <div class="flex flex-col space-y-2 md:w-1/2">
+            <label class="font-semibold">加载数据文件</label>
+            <input ref="jsonInput" type="file" accept=".json" class="border rounded px-2 py-1" />
+            <input ref="binInput" type="file" accept=".bin" class="border rounded px-2 py-1" />
+            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-sm w-max"
+              @click="handleLoadDataFiles">
+              加载
+            </button>
+          </div>
+          <!-- TFLite file input -->
+          <div class="flex flex-col space-y-2 md:w-1/2">
+            <label class="font-semibold">上传 TFLite 模型</label>
+            <input ref="tfliteInput" type="file" accept=".tflite" class="border rounded px-2 py-1" />
+            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow-sm w-max"
+              @click="handleUploadTFLite">
+              上传
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </template>

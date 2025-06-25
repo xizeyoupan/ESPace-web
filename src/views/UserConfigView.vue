@@ -55,27 +55,27 @@
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_sda_gpio_num`) }}</label>
-          <input v-model="default_store.user_config.mpu_sda_gpio_num" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_sda_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_scl_gpio_num`) }}</label>
-          <input v-model="default_store.user_config.mpu_scl_gpio_num" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_scl_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_command_buf_size`) }}</label>
-          <input v-model="default_store.user_config.mpu_command_buf_size" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_command_buf_size" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
-          <label>{{ t(`config.mpu_buf_out_size`) }}</label>
-          <input v-model="default_store.user_config.mpu_buf_out_size" class="border rounded px-2 py-1 w-64">
+          <label>{{ t(`config.mpu_one_shot_max_sample_size`) }}</label>
+          <input v-model.number="default_store.user_config.mpu_one_shot_max_sample_size" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_buf_out_to_cnn_size`) }}</label>
-          <input v-model="default_store.user_config.mpu_buf_out_to_cnn_size" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_buf_out_to_cnn_size" class="border rounded px-2 py-1 w-64">
         </div>
 
       </div>
@@ -88,17 +88,17 @@
       <div class="space-y-2 mt-2">
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.up_key_gpio_num`) }}</label>
-          <input v-model="default_store.user_config.up_key_gpio_num" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.up_key_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.down_key_gpio_num`) }}</label>
-          <input v-model="default_store.user_config.down_key_gpio_num" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.down_key_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.ws2812_gpio_num`) }}</label>
-          <input v-model="default_store.user_config.ws2812_gpio_num" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.ws2812_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
@@ -144,37 +144,37 @@
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.wifi_scan_max_size`) }}</label>
-          <input v-model="default_store.user_config.wifi_scan_list_size" type="number"
+          <input v-model.number="default_store.user_config.wifi_scan_list_size" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.wifi_retries`) }}</label>
-          <input v-model="default_store.user_config.wifi_connect_max_retry" type="number"
+          <input v-model.number="default_store.user_config.wifi_connect_max_retry" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.ws_recv_max`) }}</label>
-          <input v-model="default_store.user_config.ws_recv_buf_size" type="number"
+          <input v-model.number="default_store.user_config.ws_recv_buf_size" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.ws_recv_queue`) }}</label>
-          <input v-model="default_store.user_config.msg_buf_recv_size" type="number"
+          <input v-model.number="default_store.user_config.msg_buf_recv_size" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.ws_send_max`) }}</label>
-          <input v-model="default_store.user_config.ws_send_buf_size" type="number"
+          <input v-model.number="default_store.user_config.ws_send_buf_size" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.ws_send_queue`) }}</label>
-          <input v-model="default_store.user_config.msg_buf_send_size" type="number"
+          <input v-model.number="default_store.user_config.msg_buf_send_size" type="number"
             class="border rounded px-2 py-1 w-64">
         </div>
       </div>

@@ -88,15 +88,10 @@ export const set_ws_password = async (password) => {
     await set('password', password)
 }
 
-export const get_ledc_data = () => {
-    return {
-        brightness_input: default_store.user_config.brightness_input,
-        frequency: default_store.user_config.frequency,
-        pwm_duty_min: default_store.user_config.pwm_duty_min,
-        pwm_duty_max: default_store.user_config.pwm_duty_max,
-        boot_action: default_store.user_config.boot_action,
-        boot_brightness: default_store.user_config.boot_brightness,
-        output_func: default_store.user_config.output_func,
-        gamma_value: default_store.user_config.gamma_value,
-    }
+export const calcXORChecksum = async (file) => {
+    const buf = await file.arrayBuffer()
+    const bytes = new Uint8Array(buf)
+    let xor = 0
+    for (const b of bytes) xor ^= b
+    return xor
 }

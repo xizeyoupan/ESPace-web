@@ -91,7 +91,7 @@ export const useDefaultStore = defineStore('default', () => {
         button_period_ms: 0,
 
         mpu_command_buf_size: 0,
-        mpu_buf_out_size: 0,
+        mpu_one_shot_max_sample_size: 0,
         mpu_buf_out_to_cnn_size: 0,
 
     })

@@ -177,6 +177,6 @@ export const train = async (dataset, model_code) => {
     return result
 }
 
-export const save_model = async () => {
-    await model.save('downloads://my-model')
+export const save_model = async (name) => {
+    await model.save(`downloads://${name}`)
 }

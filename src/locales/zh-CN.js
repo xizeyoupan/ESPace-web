@@ -61,6 +61,7 @@ export default {
         wifi_list_loaded: "WiFi列表加载成功",
         train_start: "开始训练模型",
         train_success: "模型训练完成",
+        stop_sampling: "采样已停止",
     },
     about: {
         prefixURL: "prefixURL",

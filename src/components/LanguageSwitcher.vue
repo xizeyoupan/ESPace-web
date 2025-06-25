@@ -62,6 +62,3 @@ const changeLanguage = (lang) => {
     locale.value = lang
 }
 </script>
-
-<style scoped>
-</style>

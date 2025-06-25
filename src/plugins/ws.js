@@ -2,7 +2,7 @@ import { toast } from './toast.js'
 import { useDefaultStore } from '../store/defaultStore.js'
 import { i18n } from '../i18n.js'
 import pinia from '../store/index.js'
-import { get_ws_username, get_ws_password, set_ws_username, set_ws_password, set_mdns_host_name, get_ledc_data, check_not_online } from '../util.js'
+import { get_ws_username, get_ws_password, set_ws_username, set_ws_password, set_mdns_host_name } from '../util.js'
 
 const default_store = useDefaultStore(pinia)
 const t = i18n.global.t
