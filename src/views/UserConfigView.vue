@@ -70,12 +70,28 @@
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_one_shot_max_sample_size`) }}</label>
-          <input v-model.number="default_store.user_config.mpu_one_shot_max_sample_size" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_one_shot_max_sample_size"
+            class="border rounded px-2 py-1 w-64">
         </div>
 
         <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_buf_out_to_cnn_size`) }}</label>
-          <input v-model.number="default_store.user_config.mpu_buf_out_to_cnn_size" class="border rounded px-2 py-1 w-64">
+          <input v-model.number="default_store.user_config.mpu_buf_out_to_cnn_size"
+            class="border rounded px-2 py-1 w-64">
+        </div>
+
+      </div>
+    </div>
+
+    <div v-if="default_store.device_info.dev_mode">
+      <h3 class="text-xl font-semibold border-b pb-1">
+        CNN
+      </h3>
+      <div class="space-y-2 mt-2">
+
+        <div class="flex items-center justify-between">
+          <label>{{ t(`config.tflite_arena_size`) }}</label>
+          <input v-model.number="default_store.user_config.tflite_arena_size" class="border rounded px-2 py-1 w-64">
         </div>
 
       </div>

@@ -101,15 +101,17 @@ export const load_data = async (dataset) => {
     })
 
     X_train = tf.tensor3d(X_train, [X_train.length, 6, dataset.sample_size])
-    X_train = X_train.transpose([0, 2, 1])
+    // [batch_size, channels, time_steps]
+    // X_train = X_train.transpose([0, 2, 1])
+    // [batch_size, time_steps, channels] 
     Y_train = tf.tensor2d(Y_train, [Y_train.length, 1])
 
     X_val = tf.tensor3d(X_val, [X_val.length, 6, dataset.sample_size])
-    X_val = X_val.transpose([0, 2, 1])
+    // X_val = X_val.transpose([0, 2, 1])
     Y_val = tf.tensor2d(Y_val, [Y_val.length, 1])
 
     X_test = tf.tensor3d(X_test, [X_test.length, 6, dataset.sample_size])
-    X_test = X_test.transpose([0, 2, 1])
+    // X_test = X_test.transpose([0, 2, 1])
     Y_test = tf.tensor2d(Y_test, [Y_test.length, 1])
 
 }
@@ -178,5 +180,6 @@ export const train = async (dataset, model_code) => {
 }
 
 export const save_model = async (name) => {
-    await model.save(`downloads://${name}`)
+    const randomHex = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')
+    await model.save(`downloads://tfjs.${name}.${randomHex}`)
 }

@@ -94,6 +94,8 @@ export const useDefaultStore = defineStore('default', () => {
         mpu_one_shot_max_sample_size: 0,
         mpu_buf_out_to_cnn_size: 0,
 
+        tflite_arena_size: 0,
+
     })
 
     const imu_data = reactive({

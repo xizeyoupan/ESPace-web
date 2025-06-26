@@ -62,6 +62,7 @@ export default {
         train_start: "开始训练模型",
         train_success: "模型训练完成",
         stop_sampling: "采样已停止",
+        new_dataset_id_is_null: "new_dataset_id_is_null",
     },
     about: {
         prefixURL: "prefixURL",

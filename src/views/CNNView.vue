@@ -1,13 +1,15 @@
 <script setup>
 import { ref, nextTick, h, reactive, computed, watchEffect, watch } from 'vue'
 import { useDefaultStore } from '../store/defaultStore.js'
-import { get, set } from 'idb-keyval'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { toggle_visor, train, save_model } from '../cnn.js'
 import { wsmgr } from '../plugins/ws.js'
 import { i18n } from '../i18n.js'
 import { toast } from '../plugins/toast.js'
-import { calcXORChecksum } from '../util.js'
+import { calColor, calcXORChecksum, formatDate } from '../util.js'
 const t = i18n.global.t
+
+const confirmRef = ref()
 
 const currentPage = ref(1)
 const pageSize = 10
@@ -52,7 +54,7 @@ const typeGoNext = () => {
 const model_code = ref(`
 // 添加第一个 1D 卷积层
 model.add(tf.layers.conv1d({
-    batchInputShape : [1, dataset.sample_size, 6],  // 输入数据的形状
+    batchInputShape : [1, 6, dataset.sample_size],  // 输入数据的形状
     filters: dataset.item_types.length,  // 卷积核的数量
     kernelSize: 3,  // 卷积核的大小
     activation: 'relu',  // 激活函数
@@ -306,23 +308,18 @@ const load_dataset = () => {
 }
 
 const save_dataset = () => {
+  if (!new_dataset.id || new_dataset.id.trim() === "") {
+    toast(t("toast.new_dataset_id_is_null"), "error")
+    return
+  }
+
   let dataset_s = JSON.stringify(new_dataset)
 
   const blob = new Blob([dataset_s], { type: 'application/json' })
 
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = `wand-dataset-${new_dataset.id}-${new Date().toLocaleString(
-    undefined,
-    {
-      year: '2-digit',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }
-  )}.json`
+  link.download = `dataset.${new_dataset.id}.${formatDate()}.json`
 
   // 触发点击事件，下载文件
   link.click()
@@ -333,7 +330,7 @@ const train_model = async () => {
 }
 
 const fileInput = ref(null)
-const models = ref([]) // 模型名称数组（如 ['model1.tflite', 'model2.tflite']）
+const models = ref([]) // 模型名称数组, ['model1.tflite', 'model2.tflite']
 const selectedModel = ref(null)
 
 const uploadModel = async () => {
@@ -342,6 +339,8 @@ const uploadModel = async () => {
     toast(t('cnn_view.select_model_file'), 'error')
     return
   }
+
+  toast(t('toast.model_uploading'), 'success')
 
   const xor = await calcXORChecksum(file)
   const url = `${default_store.wifi_info.host}/upload_model?token=${default_store.user_config.username}:${default_store.user_config.password}&xor=${xor}&name=${encodeURIComponent(file.name)}`
@@ -352,15 +351,16 @@ const uploadModel = async () => {
   xhr.onload = function () {
     if (xhr.status === 200) {
       console.log('model上传成功:', xhr.responseText)
-      toast(t('config.ota_success'), 'success')
+      toast(t('toast.model_upload_success'), 'success')
+      fetchModelList()
     } else {
-      toast(t('config.ota_error'), 'error')
+      toast(t('toast.model_upload_fail'), 'error')
       console.error('model上传失败:', xhr.status, xhr.statusText)
     }
   }
 
   xhr.onerror = function () {
-    toast(t('config.ota_error'), 'error')
+    toast(t('toast.model_upload_fail'), 'error')
   }
 
   xhr.ontimeout = function () {
@@ -370,37 +370,42 @@ const uploadModel = async () => {
   xhr.send(file)
 }
 
-function fetchModelList() {
-  fetch('/api/list_models')
-    .then(res => res.json())
-    .then(data => {
-      models.value = data.models // 假设后端返回 { models: ['a.tflite', 'b.tflite'] }
-    })
-    .catch(err => {
-      console.error(err)
-      alert('获取模型列表失败')
-    })
+const fetchModelList = async () => {
+  toast(t('toast.loading'), 'info')
+  let data = await wsmgr.get_file_list()
+  toast(t('toast.load_success'), 'success')
+
+  const list = data.split('\n')
+    .map(name => decodeURIComponent(name))
+    .filter(i => i.endsWith(".tflite"))
+
+  console.log(list)
+  models.value = list
 }
 
-function deleteModel(name) {
-  if (!confirm(`确定要删除模型 "${name}" 吗？`)) return
+const updateModelColor = async (old, color) => {
+  let list = old.split('.')
+  list[list.length - 2] = color.replace(/^#/, '')
+  const new_val = list.join('.')
+  const data = { old: encodeURIComponent(old), new: encodeURIComponent(new_val), del: false }
+  toast(t('toast.loading'), 'info')
+  await wsmgr.modify_model(data)
+  toast(t('toast.load_success'), 'success')
+  await fetchModelList()
+}
 
-  fetch(`/api/delete_model?name=${encodeURIComponent(name)}`, {
-    method: 'DELETE'
-  })
-    .then(res => res.json())
-    .then(() => {
-      alert('删除成功')
-      fetchModelList()
-    })
-    .catch(err => {
-      console.error(err)
-      alert('删除失败')
-    })
+const deleteModel = async (name) => {
+  const ok = await confirmRef.value.show(t('confirm_dialog.del_model_confirm'))
+  if (ok) {
+    toast(t('toast.loading'), 'info')
+    const data = { old: encodeURIComponent(name), new: "", del: true }
+    await wsmgr.modify_model(data)
+    toast(t('toast.load_success'), 'success')
+    await fetchModelList()
+  }
 }
 
 function downloadModel(name) {
-  window.open(`/api/download_model?name=${encodeURIComponent(name)}`, '_blank')
 }
 
 </script>
@@ -424,6 +429,8 @@ function downloadModel(name) {
       {{ t('cnn_view.model_manage') }}
     </button>
   </div>
+
+  <ConfirmDialog ref="confirmRef" />
 
   <div class="cnn-container">
     <div v-if="!nav">
@@ -743,22 +750,32 @@ function downloadModel(name) {
           {{ t('cnn_view.upload_model') }}
         </button>
         <button @click="fetchModelList" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
-          列出模型
+          {{ t('cnn_view.list_model') }}
         </button>
       </div>
 
       <!-- 模型列表 -->
       <div v-if="models.length > 0" class="border rounded p-2 space-y-2 text-sm">
-        <div v-for="(model, index) in models" :key="model" class="flex justify-between items-center border-b py-1">
+        <div v-for="(model, index) in models" :key="model"
+          class="flex justify-between items-center border-b border-gray-300 py-1">
           <label class="flex items-center gap-2">
-            <input type="radio" name="selectedModel" :value="model" v-model="selectedModel" />
+            <!-- 色块 -->
+            <span class="w-4 h-4 rounded-full inline-block border"
+              :style="{ backgroundColor: calColor(model) || '#ccc' }"></span>
+
+            <!-- 单选 -->
+            <input type="radio" name="selectedModel" :value="model.name" v-model="selectedModel" />
             {{ model }}
           </label>
           <div class="flex gap-2">
-            <button @click="downloadModel(model)" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+            <div class="flex items-center gap-2">
+              <input type="color" :value="calColor(model)" @change="updateModelColor(model, $event.target.value)"
+                class="w-6 h-6 p-0 border cursor-pointer" />
+            </div>
+            <!-- <button @click="downloadModel(model)" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
               下载
-            </button>
-            <button @click="deleteModel(model)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">
+            </button> -->
+            <button @click="deleteModel(model)" class="bg-rose-400 hover:bg-rose-300 text-white px-2 py-1 rounded">
               删除
             </button>
           </div>

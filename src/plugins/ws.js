@@ -264,6 +264,17 @@ class WebSocketManager {
         console.log("停止MPU采集成功", payload)
     }
 
+    async get_file_list() {
+        let payload = await this.sendRequest('get_file_list')
+        console.log("获得file列表成功", payload)
+        return payload.data
+    }
+
+    async modify_model(data) {
+        let payload = await this.sendRequest('modify_model', { data })
+        console.log("modify_model成功", payload)
+    }
+
     _generateRequestId() {
         return `req_${Date.now()}_${this.requestCounter++}`
     }

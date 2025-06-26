@@ -1,6 +1,6 @@
 import { storeToRefs } from 'pinia'
 import { useDefaultStore } from './store/defaultStore.js'
-import { reactive, ref, toRef, toRefs, toRaw } from 'vue'
+import { reactive, ref, toRef, toRefs, toRaw, computed } from 'vue'
 import { api } from './api.js'
 import pinia from './store/index.js'
 import { toast } from './plugins/toast.js'
@@ -94,4 +94,28 @@ export const calcXORChecksum = async (file) => {
     let xor = 0
     for (const b of bytes) xor ^= b
     return xor
+}
+
+export function formatDate(date = new Date()) {
+    const pad = (n) => n.toString().padStart(2, '0')
+
+    const yy = date.getFullYear().toString().slice(-2)
+    const mm = pad(date.getMonth() + 1)        // 月份是 0-11
+    const dd = pad(date.getDate())
+    const hh = pad(date.getHours())
+    const mi = pad(date.getMinutes())
+    const ss = pad(date.getSeconds())
+
+    return `${yy}${mm}${dd}${hh}${mi}${ss}`
+}
+
+
+export const calColor = (name) => {
+    const parts = name.split('.')
+    for (const part of parts) {
+        if (/^[0-9a-fA-F]{6}$/.test(part)) {
+            return `#${part}`
+        }
+    }
+    return '#cccccc'
 }
