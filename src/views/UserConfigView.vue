@@ -64,11 +64,6 @@
         </div>
 
         <div class="flex items-center justify-between">
-          <label>{{ t(`config.mpu_command_buf_size`) }}</label>
-          <input v-model.number="default_store.user_config.mpu_command_buf_size" class="border rounded px-2 py-1 w-64">
-        </div>
-
-        <div class="flex items-center justify-between">
           <label>{{ t(`config.mpu_one_shot_max_sample_size`) }}</label>
           <input v-model.number="default_store.user_config.mpu_one_shot_max_sample_size"
             class="border rounded px-2 py-1 w-64">
@@ -94,6 +89,11 @@
           <input v-model.number="default_store.user_config.tflite_arena_size" class="border rounded px-2 py-1 w-64">
         </div>
 
+        <div class="flex items-center justify-between">
+          <label>{{ t(`config.tflite_model_size`) }}</label>
+          <input v-model.number="default_store.user_config.tflite_model_size" class="border rounded px-2 py-1 w-64">
+        </div>
+
       </div>
     </div>
 
@@ -102,6 +102,11 @@
         {{ t('config.other') }}
       </h3>
       <div class="space-y-2 mt-2">
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.esplog_max_length`) }}</label>
+          <input v-model.number="default_store.user_config.esplog_max_length" class="border rounded px-2 py-1 w-64">
+        </div>
+
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.up_key_gpio_num`) }}</label>
           <input v-model.number="default_store.user_config.up_key_gpio_num" class="border rounded px-2 py-1 w-64">

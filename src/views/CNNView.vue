@@ -102,6 +102,7 @@ const default_store = useDefaultStore()
 
 const nav = ref("")
 const record_ready = ref(false)
+const predict_ready = ref(false)
 const checked_model_type_id = ref(null)
 
 const new_dataset = reactive(
@@ -120,6 +121,31 @@ const new_dataset = reactive(
     items: [],
   }
 )
+
+const predict_response = reactive({
+  data: [],
+  output_size: 0,
+})
+
+const predict_response_handler = async (payload) => {
+  console.log(payload)
+  Object.assign(predict_response, payload)
+}
+
+wsmgr.onMessage('predict', predict_response_handler)
+
+const maxPredictIndex = computed(() => {
+  let max = -Infinity
+  let idx = -1
+  predict_response.data.forEach((val, i) => {
+    if (val > max) {
+      max = val
+      idx = i
+    }
+  })
+  return idx
+})
+
 
 watch(
   () => default_store.dataset_data_view,
@@ -222,6 +248,21 @@ watchEffect(() => {
     })
   })
 })
+
+const update_predict_ready = async (state) => {
+  if (state) {
+    if (!selectedModel.value) {
+      toast(t("toast.select_model_first"), "error")
+      return
+    }
+    await wsmgr.start_predict({ model: encodeURIComponent(selectedModel.value) })
+  } else {
+    await wsmgr.stop_predict()
+    predict_response.data.length = 0
+  }
+
+  predict_ready.value = state
+}
 
 const update_record_ready = async (state) => {
   if (state) {
@@ -421,10 +462,6 @@ function downloadModel(name) {
       {{ t('cnn_view.dataset') }}
     </button>
     <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
-      :class="{ 'border-blue-500 font-semibold': nav === 'predict' }" @click="nav = 'predict'">
-      {{ t('cnn_view.predict') }}
-    </button>
-    <button class="px-4 py-2 text-gray-700 hover:text-blue-600 border-b-2"
       :class="{ 'border-blue-500 font-semibold': nav === 'model_manage' }" @click="nav = 'model_manage'">
       {{ t('cnn_view.model_manage') }}
     </button>
@@ -461,7 +498,8 @@ function downloadModel(name) {
           <button @click="toggle_visor" class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
             显示面板
           </button>
-          <button @click="save_model(new_dataset.id)"
+          <button
+            @click="save_model(new_dataset.id, new_dataset.type ? 'periodic' : 'oneshot', new_dataset.sample_tick)"
             class="bg-blue-400 hover:bg-blue-500 text-white px-4 py-1 rounded text-sm">
             保存
           </button>
@@ -477,6 +515,25 @@ function downloadModel(name) {
           <textarea v-model="model_code" spellcheck="false"
             class="w-full h-80 border rounded p-2 font-mono text-sm bg-white"></textarea>
         </details>
+      </div>
+
+      <div class="flex items-center flex-wrap gap-2">
+        <span class="text-base font-semibold">预测：</span>
+
+        <label class="inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="checsskbox" class="form-checkbox" :checked="predict_ready"
+            @click.prevent="(e) => update_predict_ready(e.target.checked)" />
+          <span class="ml-2 text-sm">启用</span>
+        </label>
+
+      </div>
+
+      <div class="space-y-1">
+        <div v-for="(value, index) in predict_response.data" :key="index"
+          :class="['flex justify-between px-2 py-1 rounded', index === maxPredictIndex ? 'bg-yellow-100 font-bold text-yellow-700' : '']">
+          <span>#{{ index }}</span>
+          <span>{{ (value * 100).toFixed(2) }}%</span>
+        </div>
       </div>
     </div>
 
@@ -764,7 +821,7 @@ function downloadModel(name) {
               :style="{ backgroundColor: calColor(model) || '#ccc' }"></span>
 
             <!-- 单选 -->
-            <input type="radio" name="selectedModel" :value="model.name" v-model="selectedModel" />
+            <input type="radio" name="selectedModel" @change="selectedModel = model" />
             {{ model }}
           </label>
           <div class="flex gap-2">
@@ -783,32 +840,5 @@ function downloadModel(name) {
       </div>
     </div>
 
-
-    <div v-if="nav === 'predict'" class="space-y-4">
-      <div class="space-y-4">
-        <div class="flex flex-col md:flex-row gap-4">
-          <!-- JSON & BIN file input -->
-          <div class="flex flex-col space-y-2 md:w-1/2">
-            <label class="font-semibold">加载数据文件</label>
-            <input ref="jsonInput" type="file" accept=".json" class="border rounded px-2 py-1" />
-            <input ref="binInput" type="file" accept=".bin" class="border rounded px-2 py-1" />
-            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-sm w-max"
-              @click="handleLoadDataFiles">
-              加载
-            </button>
-          </div>
-          <!-- TFLite file input -->
-          <div class="flex flex-col space-y-2 md:w-1/2">
-            <label class="font-semibold">上传 TFLite 模型</label>
-            <input ref="tfliteInput" type="file" accept=".tflite" class="border rounded px-2 py-1" />
-            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow-sm w-max"
-              @click="handleUploadTFLite">
-              上传
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
 </template>

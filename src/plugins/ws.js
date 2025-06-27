@@ -270,6 +270,16 @@ class WebSocketManager {
         return payload.data
     }
 
+    async start_predict(data) {
+        let payload = await this.sendRequest('start_predict', { data })
+        console.log("start_predict成功", payload)
+    }
+
+    async stop_predict(data) {
+        let payload = await this.sendRequest('stop_predict', { data })
+        console.log("stop_predict成功", payload)
+    }
+
     async modify_model(data) {
         let payload = await this.sendRequest('modify_model', { data })
         console.log("modify_model成功", payload)

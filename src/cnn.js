@@ -179,7 +179,7 @@ export const train = async (dataset, model_code) => {
     return result
 }
 
-export const save_model = async (name) => {
+export const save_model = async (name, suffix, tick) => {
     const randomHex = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')
-    await model.save(`downloads://tfjs.${name}.${randomHex}`)
+    await model.save(`downloads://tfjs.${tick}.${suffix}.${name}.${randomHex}`)
 }
