@@ -49,6 +49,7 @@ export const useDefaultStore = defineStore('default', () => {
         task_count: 0,
         task_list: [],
         total_free_bytes: 0,
+        internal_free_bytes: 0,
         total_allocated_bytes: 0,
         largest_free_block: 0,
         minimum_free_bytes: 0,
@@ -97,6 +98,12 @@ export const useDefaultStore = defineStore('default', () => {
         tflite_model_size: 0,
 
         esplog_max_length: 0,
+        periph_pwr_gpio_num: 0,
+        i2s_bck_gpio_num: 0,
+        i2s_ws_gpio_num: 0,
+        i2s_dout_gpio_num: 0,
+        ir_tx_gpio_num: 0,
+        ir_rx_gpio_num: 0,
     })
 
     const imu_data = reactive({

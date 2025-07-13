@@ -10,23 +10,23 @@ const t = i18n.global.t
 const default_store = useDefaultStore()
 
 const state_to_str = [
-    'eRunning',
-    'eReady',
-    'eBlocked',
-    'eSuspended',
-    'eDeleted'
+  'eRunning',
+  'eReady',
+  'eBlocked',
+  'eSuspended',
+  'eDeleted'
 ]
 
 wsmgr.get_state_info()
 
 let time_interval_obj
 time_interval_obj = setInterval(() => {
-    if (check_not_online()) return
-    wsmgr.get_state_info()
+  if (check_not_online()) return
+  wsmgr.get_state_info()
 }, 3000)
 
 onUnmounted(() => {
-    clearInterval(time_interval_obj)
+  clearInterval(time_interval_obj)
 })
 
 </script>
@@ -47,6 +47,10 @@ onUnmounted(() => {
         <span class="w-60 font-medium text-gray-700">{{ t('state_view.free_memory') }}:</span>
         <span class="text-gray-900">{{ default_store.stat_data.total_free_bytes }}</span>
         <span class="text-gray-500">{{ default_store.computed_data.free_men_percent }}%</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="w-60 font-medium text-gray-700">{{ t('state_view.internal_free_memory') }}:</span>
+        <span class="text-gray-900">{{ default_store.stat_data.internal_free_bytes }}</span>
       </div>
       <div class="flex justify-between">
         <span class="w-60 font-medium text-gray-700">{{ t('state_view.largest_free_block') }}:</span>
@@ -81,11 +85,7 @@ onUnmounted(() => {
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="task in default_store.stat_data.task_list"
-            :key="task.pcTaskName"
-            class="hover:bg-gray-50"
-          >
+          <tr v-for="task in default_store.stat_data.task_list" :key="task.pcTaskName" class="hover:bg-gray-50">
             <td class="px-4 py-2 border-b">
               {{ task.xTaskNumber }}
             </td>

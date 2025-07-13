@@ -108,6 +108,11 @@
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.periph_pwr_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.periph_pwr_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.up_key_gpio_num`) }}</label>
           <input v-model.number="default_store.user_config.up_key_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
@@ -115,6 +120,31 @@
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
           <label>{{ t(`config.down_key_gpio_num`) }}</label>
           <input v-model.number="default_store.user_config.down_key_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.i2s_bck_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.i2s_bck_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.i2s_ws_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.i2s_ws_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.i2s_dout_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.i2s_dout_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.ir_tx_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.ir_tx_gpio_num" class="border rounded px-2 py-1 w-64">
+        </div>
+
+        <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
+          <label>{{ t(`config.ir_rx_gpio_num`) }}</label>
+          <input v-model.number="default_store.user_config.ir_rx_gpio_num" class="border rounded px-2 py-1 w-64">
         </div>
 
         <div v-if="default_store.device_info.dev_mode" class="flex items-center justify-between">
