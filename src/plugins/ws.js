@@ -1,10 +1,12 @@
 import { toast } from './toast.js'
-import { useDefaultStore } from '../store/defaultStore.js'
+import { useInfoStore } from '../store/infoStore.js'
+import { useCNNStore } from '../store/CNNStore.js'
 import { i18n } from '../i18n.js'
 import pinia from '../store/index.js'
 import { get_ws_username, get_ws_password, set_ws_username, set_ws_password, set_mdns_host_name } from '../util.js'
 
-const default_store = useDefaultStore(pinia)
+const info_store = useInfoStore(pinia)
+const CNN_store = useCNNStore(pinia)
 const t = i18n.global.t
 
 class WebSocketManager {
@@ -54,10 +56,10 @@ class WebSocketManager {
         this.ws.binaryType = "arraybuffer"
 
         toast(t('toast.loading'), 'info')
-        default_store.device_info.cpu_freq = 0
+        info_store.device_info.cpu_freq = 0
 
         this.init_timeIntervalObj = setInterval(() => {
-            if (default_store.device_info.cpu_freq && default_store.user_config.username) {
+            if (info_store.device_info.cpu_freq && info_store.user_config.username) {
                 clearInterval(this.init_timeIntervalObj)
                 this.init_timeIntervalObj = null
                 return
@@ -71,12 +73,12 @@ class WebSocketManager {
 
         this.ws.onopen = () => {
             console.log("WebSocket 连接成功")
-            default_store.wifi_info.isOnline = true
+            info_store.wifi_info.isOnline = true
             this.heartCheck.start()
         }
 
         this.ws.onmessage = (event) => {
-            default_store.wifi_info.isOnline = true
+            info_store.wifi_info.isOnline = true
             this.heartCheck.reset()
 
             if (event.data instanceof ArrayBuffer) {
@@ -84,16 +86,16 @@ class WebSocketManager {
                 const data_type = view.getFloat32(0)
 
                 switch (data_type) {
-                    case 0:
-                        let dataset_size = view.getFloat32(4, true)
-                        default_store.dataset_data_view = view
-                        console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
-                        break
-                    default:
-                        console.warn("未知数据类型:", data_type)
-                        console.log("event.data:", event.data)
-                        console.log("size:", event.data.byteLength)
-                        break
+                case 0:
+                    let dataset_size = view.getFloat32(4, true)
+                    CNN_store.dataset_data_view = view
+                    console.log("dataset_size: ", dataset_size, "total_get: ", event.data.byteLength)
+                    break
+                default:
+                    console.warn("未知数据类型:", data_type)
+                    console.log("event.data:", event.data)
+                    console.log("size:", event.data.byteLength)
+                    break
                 }
 
             } else {
@@ -119,13 +121,13 @@ class WebSocketManager {
         }
 
         this.ws.onclose = () => {
-            default_store.wifi_info.isOnline = false
+            info_store.wifi_info.isOnline = false
             console.log("WebSocket 连接关闭，尝试重连...")
             this.reconnect()
         }
 
         this.ws.onerror = (error) => {
-            default_store.wifi_info.isOnline = false
+            info_store.wifi_info.isOnline = false
             console.error("WebSocket 发生错误:", error)
             this.reconnect()
         }
@@ -181,21 +183,21 @@ class WebSocketManager {
     }
 
     async update_user_config() {
-        let payload = await this.sendRequest("update_user_config", { data: default_store.user_config })
+        let payload = await this.sendRequest("update_user_config", { data: info_store.user_config })
         console.log("更新用户配置成功", payload)
-        Object.assign(default_store.user_config, payload.data)
-        set_ws_username(default_store.user_config.username)
-        set_ws_password(default_store.user_config.password)
-        set_mdns_host_name(default_store.user_config.mdns_host_name)
+        Object.assign(info_store.user_config, payload.data)
+        set_ws_username(info_store.user_config.username)
+        set_ws_password(info_store.user_config.password)
+        set_mdns_host_name(info_store.user_config.mdns_host_name)
     }
 
     async reset_user_config() {
         let payload = await this.sendRequest("reset_user_config")
         console.log("重置用户配置成功", payload)
-        Object.assign(default_store.user_config, payload.data)
-        set_ws_username(default_store.user_config.username)
-        set_ws_password(default_store.user_config.password)
-        set_mdns_host_name(default_store.user_config.mdns_host_name)
+        Object.assign(info_store.user_config, payload.data)
+        set_ws_username(info_store.user_config.username)
+        set_ws_password(info_store.user_config.password)
+        set_mdns_host_name(info_store.user_config.mdns_host_name)
     }
 
     async connect_wifi() {
@@ -203,8 +205,8 @@ class WebSocketManager {
             {
                 data:
                 {
-                    ssid: default_store.wifi_info.input_ssid,
-                    password: default_store.wifi_info.input_password
+                    ssid: info_store.wifi_info.input_ssid,
+                    password: info_store.wifi_info.input_password
                 }
             })
     }
@@ -212,41 +214,41 @@ class WebSocketManager {
     async get_device_info() {
         let payload = await this.sendRequest('get_device_info')
         console.log("获取设备信息成功", payload)
-        Object.assign(default_store.device_info, payload.data)
+        Object.assign(info_store.device_info, payload.data)
     }
 
     async get_user_config() {
         let payload = await this.sendRequest('get_user_config')
         console.log("获取用户配置成功", payload)
-        Object.assign(default_store.user_config, payload.data)
-        set_ws_username(default_store.user_config.username)
-        set_ws_password(default_store.user_config.password)
-        set_mdns_host_name(default_store.user_config.mdns_host_name)
+        Object.assign(info_store.user_config, payload.data)
+        set_ws_username(info_store.user_config.username)
+        set_ws_password(info_store.user_config.password)
+        set_mdns_host_name(info_store.user_config.mdns_host_name)
     }
 
     async get_wifi_info() {
         let payload = await this.sendRequest('get_wifi_info')
         console.log("获取WiFi信息成功", payload)
-        Object.assign(default_store.wifi_info, payload.data)
+        Object.assign(info_store.wifi_info, payload.data)
     }
 
     async get_wifi_list() {
         let payload = await this.sendRequest('get_wifi_list', {}, 10000)
         console.log("获取WiFi列表成功", payload)
-        default_store.wifi_list = payload.data
+        info_store.wifi_list = payload.data
     }
 
     async get_state_info() {
         let payload = await this.sendRequest('get_state_info')
         console.log("获取状态信息成功", payload)
-        default_store.stat_data.task_list = payload.data.task_list.sort((a, b) => a.xTaskNumber - b.xTaskNumber)
-        Object.assign(default_store.stat_data, payload.data)
+        info_store.stat_data.task_list = payload.data.task_list.sort((a, b) => a.xTaskNumber - b.xTaskNumber)
+        Object.assign(info_store.stat_data, payload.data)
     }
 
     async get_imu_data() {
         let payload = await this.sendRequest('get_imu_data')
         console.log("获取IMU数据成功", payload)
-        Object.assign(default_store.imu_data, payload.data)
+        Object.assign(info_store.imu_data, payload.data)
     }
 
     async reset_imu() {
@@ -290,7 +292,7 @@ class WebSocketManager {
     }
 
     sendRequest(type, payload = {}, timeoutMs = 2000) {
-        if (!default_store.wifi_info.isOnline) {
+        if (!info_store.wifi_info.isOnline) {
             return Promise.reject("设备离线")
         } else if (this.ws.readyState !== WebSocket.OPEN) {
             return Promise.reject("WebSocket未连接")

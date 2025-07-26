@@ -1,23 +1,23 @@
 // import * as tf from "@tensorflow/tfjs"
 // import * as tfvis from '@tensorflow/tfjs-vis'
 
-import { useDefaultStore } from './store/defaultStore.js'
+import { useInfoStore } from './store/infoStore.js'
 import { reactive, ref, toRef, toRefs, toRaw } from 'vue'
 import pinia from './store/index.js'
 import { toast } from './plugins/toast.js'
 import { i18n } from './i18n.js'
 const t = i18n.global.t
 
-const default_store = useDefaultStore(pinia)
+const info_store = useInfoStore(pinia)
 
-let X_train = []   // 训练集输入数据 (shape: [train_size, sample_size, 6])
-let Y_train = []   // 训练集标签 (shape: [train_size, 1])
+let X_train = [] // 训练集输入数据 (shape: [train_size, sample_size, 6])
+let Y_train = [] // 训练集标签 (shape: [train_size, 1])
 
-let X_val = []  // 验证集输入数据 (shape: [val_size, sample_size, 6])
-let Y_val = []   // 验证集标签 (shape: [val_size, 1])
+let X_val = [] // 验证集输入数据 (shape: [val_size, sample_size, 6])
+let Y_val = [] // 验证集标签 (shape: [val_size, 1])
 
-let X_test = []   // 测试集输入数据 (shape: [test_size, sample_size, 6])
-let Y_test = []  // 测试集标签 (shape: [test_size, 1])
+let X_test = [] // 测试集输入数据 (shape: [test_size, sample_size, 6])
+let Y_test = [] // 测试集标签 (shape: [test_size, 1])
 
 let model
 let trainModel
@@ -103,7 +103,7 @@ export const load_data = async (dataset) => {
     X_train = tf.tensor3d(X_train, [X_train.length, 6, dataset.sample_size])
     // [batch_size, channels, time_steps]
     // X_train = X_train.transpose([0, 2, 1])
-    // [batch_size, time_steps, channels] 
+    // [batch_size, time_steps, channels]
     Y_train = tf.tensor2d(Y_train, [Y_train.length, 1])
 
     X_val = tf.tensor3d(X_val, [X_val.length, 6, dataset.sample_size])

@@ -5,7 +5,7 @@
     @click="showModal = true"
   >
     <WifiIcon
-      v-if="default_store.wifi_info.isOnline"
+      v-if="info_store.wifi_info.isOnline"
       class="mr-2 h-5 w-5"
       aria-hidden="true"
     />
@@ -63,24 +63,24 @@
                 <span class="mr-4 text-base">{{ t('connect_esp_modal.enable_custom_address') }}</span>
 
                 <Switch
-                  v-model="default_store.wifi_info.enable_custom_address"
-                  :class="default_store.wifi_info.enable_custom_address ? 'bg-green-600' : 'bg-gray-200'"
+                  v-model="info_store.wifi_info.enable_custom_address"
+                  :class="info_store.wifi_info.enable_custom_address ? 'bg-green-600' : 'bg-gray-200'"
                   class="relative inline-flex h-[1.5rem] w-[3.7rem] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
                 >
                   <span class="sr-only">Use setting</span>
                   <span
                     aria-hidden="true"
-                    :class="default_store.wifi_info.enable_custom_address ? 'translate-x-9' : 'translate-x-0'"
+                    :class="info_store.wifi_info.enable_custom_address ? 'translate-x-9' : 'translate-x-0'"
                     class="pointer-events-none inline-block h-[1.2rem] w-[1.2rem] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
                   />
                 </Switch>
               </div>
 
               <input
-                v-if="default_store.wifi_info.enable_custom_address"
-                v-model="default_store.wifi_info.custom_address"
+                v-if="info_store.wifi_info.enable_custom_address"
+                v-model="info_store.wifi_info.custom_address"
                 type="text"
-                :disabled="!default_store.wifi_info.enable_custom_address"
+                :disabled="!info_store.wifi_info.enable_custom_address"
                 :placeholder="t('connect_esp_modal.custom_address_placeholder', ['192.168.4.1', 'esp32-light'])"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
@@ -89,7 +89,7 @@
                 <span class="mr-4 text-base">{{ t('connect_esp_modal.username') }}</span>
               </div>
               <input
-                v-model="default_store.user_config.username"
+                v-model="info_store.user_config.username"
                 type="text"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
@@ -97,7 +97,7 @@
                 <span class="mr-4 text-base">{{ t('connect_esp_modal.password') }}</span>
               </div>
               <input
-                v-model="default_store.user_config.password"
+                v-model="info_store.user_config.password"
                 type="password"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
@@ -121,13 +121,13 @@
 
 <script setup>
 import { NoSymbolIcon, WifiIcon } from '@heroicons/vue/20/solid'
-import { useDefaultStore } from '../store/defaultStore.js'
+import { useInfoStore } from '../store/infoStore.js'
 import { i18n } from '../i18n.js'
 import { ref, useTemplateRef } from 'vue'
 import { Dialog, Switch, TransitionRoot, DialogOverlay, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { connect_device } from '../util.js'
 
 const t = i18n.global.t
-const default_store = useDefaultStore()
+const info_store = useInfoStore()
 const showModal = ref(false)
 </script>

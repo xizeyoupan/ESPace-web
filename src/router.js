@@ -9,13 +9,17 @@ import MusicToBTView from './views/MusicToBTView.vue'
 import GestureDetectView from './views/GestureDetectView.vue'
 import WiFiInfoView from './views/WiFiInfoView.vue'
 import UserConfigView from './views/UserConfigView.vue'
-import CNNView from './views/CNNView.vue'
+import CNNDataset from './views/CNNDataset.vue'
+import CNNTrain from './views/CNNTrain.vue'
+import CNNManage from './views/CNNManage.vue'
 import StateView from './views/StateView.vue'
 
 const routes = [
     { path: '/', redirect: '/about' },
     { path: '/about', component: AboutView },
-    { path: '/cnn', component: CNNView },
+    { path: '/cnn-dataset', component: CNNDataset },
+    { path: '/cnn-train', component: CNNTrain },
+    { path: '/cnn-manage', component: CNNManage },
     { path: '/ble-gamepad', component: BTGamePadView },
     { path: '/bt-info', component: BTInfoView },
     { path: '/ir-control', component: IRRemoteControlView },

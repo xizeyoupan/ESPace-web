@@ -45,7 +45,7 @@
                 <span class="mr-4 text-base">{{ t('connect_wifi_modal.ssid') }}</span>
               </div>
               <input
-                v-model="default_store.wifi_info.input_ssid"
+                v-model="info_store.wifi_info.input_ssid"
                 type="text"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
@@ -53,7 +53,7 @@
                 <span class="mr-4 text-base">{{ t('connect_wifi_modal.password') }}</span>
               </div>
               <input
-                v-model="default_store.wifi_info.input_password"
+                v-model="info_store.wifi_info.input_password"
                 type="password"
                 class="w-full p-2 border border-gray-300 rounded-md"
               >
@@ -63,7 +63,7 @@
                   type="button"
                   class="rounded-md border border-transparent bg-blue-100 px-4 py-2 mr-4 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                   @click="() => {
-                    if(default_store.wifi_info.input_ssid === '') {
+                    if(info_store.wifi_info.input_ssid === '') {
                       toast(t('connect_wifi_modal.ssid_empty'), 'error')
                       return
                     }
@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { useDefaultStore } from '../store/defaultStore.js'
+import { useInfoStore } from '../store/infoStore.js'
 import { i18n } from '../i18n.js'
 import { Dialog, Switch, TransitionRoot, DialogOverlay, TransitionChild, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { wsmgr } from '../plugins/ws.js'
@@ -98,7 +98,7 @@ import { toast } from '../plugins/toast.js'
 const { showModal } = defineProps({showModal: Boolean})
 defineEmits(['exit'])
 
-const default_store = useDefaultStore(pinia)
+const info_store = useInfoStore(pinia)
 const t = i18n.global.t
 
 </script>

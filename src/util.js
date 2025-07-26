@@ -1,5 +1,5 @@
 import { storeToRefs } from 'pinia'
-import { useDefaultStore } from './store/defaultStore.js'
+import { useInfoStore } from './store/infoStore.js'
 import { reactive, ref, toRef, toRefs, toRaw, computed } from 'vue'
 import { api } from './api.js'
 import pinia from './store/index.js'
@@ -9,7 +9,7 @@ import { wsmgr } from './plugins/ws.js'
 import { get, set } from 'idb-keyval'
 
 const t = i18n.global.t
-const default_store = useDefaultStore(pinia)
+const info_store = useInfoStore(pinia)
 
 const get_host = async (url) => {
     let resp = await api.get(url, { timeout: 2000 })
@@ -17,7 +17,7 @@ const get_host = async (url) => {
     resp = await resp.text()
 
     if (resp === '0721ESPace') {
-        default_store.wifi_info.host = resp_host
+        info_store.wifi_info.host = resp_host
     } else {
         throw new Error(`${resp_host} is not target device`)
     }
@@ -26,8 +26,8 @@ const get_host = async (url) => {
 export const connect_device = async () => {
     let fetch_pool = []
     const default_mdns_host_name = await get_mdns_host_name()
-    if (default_store.wifi_info.enable_custom_address) {
-        fetch_pool.push(get_host(`http://${default_store.wifi_info.custom_address}/whoami`))
+    if (info_store.wifi_info.enable_custom_address) {
+        fetch_pool.push(get_host(`http://${info_store.wifi_info.custom_address}/whoami`))
     } else {
         fetch_pool.push(get_host(`http://${default_mdns_host_name}/whoami`))
         fetch_pool.push(get_host(`http://${default_mdns_host_name}.local/whoami`))
@@ -36,11 +36,11 @@ export const connect_device = async () => {
     try {
         await Promise.any(fetch_pool)
         if (wsmgr.url) wsmgr.del()
-        wsmgr.init(`ws://${default_store.wifi_info.host.slice(7)}/esp-ws`)
+        wsmgr.init(`ws://${info_store.wifi_info.host.slice(7)}/esp-ws`)
     } catch (error) {
         console.warn(error)
     } finally {
-        // if (default_store.wifi_info.isOnline) {
+        // if (info_store.wifi_info.isOnline) {
         //     toast(t("toast.connect_success"), "success")
         // } else {
         //     toast(t("toast.connect_failed"), "error")
@@ -49,7 +49,7 @@ export const connect_device = async () => {
 }
 
 export const check_not_online = () => {
-    if (!default_store.wifi_info.isOnline) {
+    if (!info_store.wifi_info.isOnline) {
         // toast(t("toast.device_offline"), "error")
         console.error(t("toast.device_offline"))
         return true
@@ -63,7 +63,7 @@ export const sleep_ms = async (ms) => {
 
 export const get_mdns_host_name = async () => {
     const host = await get('mdns_host_name')
-    return host || default_store.user_config.mdns_host_name || 'espace'
+    return host || info_store.user_config.mdns_host_name || 'espace'
 }
 
 export const set_mdns_host_name = async (host_name) => {
@@ -72,7 +72,7 @@ export const set_mdns_host_name = async (host_name) => {
 
 export const get_ws_username = async () => {
     const username = await get('username')
-    return username || default_store.user_config.username || 'murasame'
+    return username || info_store.user_config.username || 'murasame'
 }
 
 export const set_ws_username = async (username) => {
@@ -81,7 +81,7 @@ export const set_ws_username = async (username) => {
 
 export const get_ws_password = async () => {
     const pass = await get('password')
-    return pass || default_store.user_config.password || '0d00'
+    return pass || info_store.user_config.password || '0d00'
 }
 
 export const set_ws_password = async (password) => {
@@ -100,7 +100,7 @@ export function formatDate(date = new Date()) {
     const pad = (n) => n.toString().padStart(2, '0')
 
     const yy = date.getFullYear().toString().slice(-2)
-    const mm = pad(date.getMonth() + 1)        // 月份是 0-11
+    const mm = pad(date.getMonth() + 1) // 月份是 0-11
     const dd = pad(date.getDate())
     const hh = pad(date.getHours())
     const mi = pad(date.getMinutes())

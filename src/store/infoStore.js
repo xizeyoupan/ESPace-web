@@ -13,7 +13,7 @@ const chipVersions = [
     "ESP32D0WDR2V3"
 ]
 
-export const useDefaultStore = defineStore('default', () => {
+export const useInfoStore = defineStore('info', () => {
 
     const wifi_info = reactive({
         isOnline: false,

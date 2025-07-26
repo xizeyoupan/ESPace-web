@@ -1,12 +1,12 @@
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
-import { useDefaultStore } from '../store/defaultStore.js'
+import { useInfoStore } from '../store/infoStore.js'
 import { wsmgr } from '../plugins/ws.js'
 import { i18n } from '../i18n.js'
 import { toast } from '../plugins/toast.js'
 const t = i18n.global.t
 
-const default_store = useDefaultStore()
+const info_store = useInfoStore()
 
 var meter1 = 0
 var meter2 = 0
@@ -274,7 +274,7 @@ let totalTime = 0;
 let updateCount = 0;
 
 watch(
-  default_store.imu_data,
+  info_store.imu_data,
   (newVal) => {
     const now = performance.now();
     const delta = now - lastUpdateTime;
@@ -326,12 +326,12 @@ const reset_imu = async () => {
 
     <!-- IMU 数据展示 -->
     <div class="grid grid-cols-3 sm:grid-cols-6 gap-5 text-center">
-      <div><span class="font-medium">ax:</span> <span>{{ default_store.imu_data.ax.toFixed(2) }}</span></div>
-      <div><span class="font-medium">ay:</span> <span>{{ default_store.imu_data.ay.toFixed(2) }}</span></div>
-      <div><span class="font-medium">az:</span> <span>{{ default_store.imu_data.az.toFixed(2) }}</span></div>
-      <div><span class="font-medium">gx:</span> <span>{{ default_store.imu_data.gx.toFixed(2) }}</span></div>
-      <div><span class="font-medium">gy:</span> <span>{{ default_store.imu_data.gy.toFixed(2) }}</span></div>
-      <div><span class="font-medium">gz:</span> <span>{{ default_store.imu_data.gz.toFixed(2) }}</span></div>
+      <div><span class="font-medium">ax:</span> <span>{{ info_store.imu_data.ax.toFixed(2) }}</span></div>
+      <div><span class="font-medium">ay:</span> <span>{{ info_store.imu_data.ay.toFixed(2) }}</span></div>
+      <div><span class="font-medium">az:</span> <span>{{ info_store.imu_data.az.toFixed(2) }}</span></div>
+      <div><span class="font-medium">gx:</span> <span>{{ info_store.imu_data.gx.toFixed(2) }}</span></div>
+      <div><span class="font-medium">gy:</span> <span>{{ info_store.imu_data.gy.toFixed(2) }}</span></div>
+      <div><span class="font-medium">gz:</span> <span>{{ info_store.imu_data.gz.toFixed(2) }}</span></div>
     </div>
 
     <!-- Canvas 区域 -->

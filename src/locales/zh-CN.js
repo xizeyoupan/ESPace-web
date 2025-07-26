@@ -11,7 +11,12 @@ export default {
         config: '配置',
         stat: '状态',
         mpu: '姿态检测',
-        cnn: 'CNN',
+        CNN: 'CNN',
+        ir: '红外',
+        CNN_train: '训练',
+        CNN_dataset: '数据集',
+        CNN_manage: '管理',
+        peripherals: '外设',
     },
     language: "设置语言",
     device: {
@@ -25,7 +30,7 @@ export default {
         reset_confirm: "重置配置，是否继续？",
     },
     connect_esp_modal: {
-        title: "设置魔杖地址",
+        title: "设置ESPace地址",
         enable_custom_address: "启用自定义地址",
         custom_address_placeholder: "例如 {0} 或 {1}",
         connect: "连接",
@@ -63,6 +68,8 @@ export default {
         train_success: "模型训练完成",
         stop_sampling: "采样已停止",
         new_dataset_id_is_null: "new_dataset_id_is_null",
+        select_model_first: "请先在管理页面选择模型",
+        select_dataset_first: "请先在数据集页面选择正确数据集",
     },
     about: {
         prefixURL: "prefixURL",
@@ -98,6 +105,7 @@ export default {
         task_name: "名称",
         task_state: "状态",
         task_high_water_mark: "最高水位",
+        internal_free_memory: "SRAM空闲内存",
     },
     config: {
         title: "配置",
@@ -110,12 +118,24 @@ export default {
         ota_success: "固件升级成功，等待重启",
         ota_error: "固件升级失败",
 
-        other: "其他设置",
-        up_key_gpio_num: "上方按键 GPIO 引脚",
-        down_key_gpio_num: "下方按键 GPIO 引脚",
-
         mpu_sda_gpio_num: "MPU SDA 引脚",
         mpu_scl_gpio_num: "MPU SCL 引脚",
+        mpu_one_shot_max_sample_size: "MPU 单次采样最大数量",
+        mpu_buf_out_to_cnn_size: "MPU 输出至 CNN 缓冲区大小",
+
+        tflite_arena_size: "TFLite Arena 大小",
+        tflite_model_size: "TFLite 模型预留空间",
+
+        other: "其他设置",
+        esplog_max_length: "单条日志最大字符长度",
+        periph_pwr_gpio_num: "外设电源控制 GPIO 引脚",
+        up_key_gpio_num: "上方按键 GPIO 引脚",
+        down_key_gpio_num: "下方按键 GPIO 引脚",
+        i2s_bck_gpio_num: "I2S BCK GPIO 引脚",
+        i2s_ws_gpio_num: "I2S WS GPIO 引脚",
+        i2s_dout_gpio_num: "I2S DOUT GPIO 引脚",
+        ir_tx_gpio_num: "红外发射 GPIO 引脚",
+        ir_rx_gpio_num: "红外接收 GPIO 引脚",
 
         ws2812_gpio_num: "WS2812 GPIO 引脚",
 
@@ -138,5 +158,7 @@ export default {
         choose_model_type: "请选择模型类型",
         input_sample_size: "请输入样本大小",
         input_sample_tick: "请输入样本采样间隔",
+        upload_model: "上传模型",
+        list_model: "载入模型列表",
     }
 }

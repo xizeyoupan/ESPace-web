@@ -9,5 +9,6 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "always"
     },
+    "idf.pythonInstallPath": "/usr/bin/python3",
     // "editor.defaultFormatter": "dbaeumer.vscode-eslint"
 }
