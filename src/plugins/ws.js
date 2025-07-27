@@ -269,7 +269,31 @@ class WebSocketManager {
     async get_file_list() {
         let payload = await this.sendRequest('get_file_list')
         console.log("获得file列表成功", payload)
-        return payload.data
+        return payload
+    }
+
+    async get_ledc_timer_config(data) {
+        let payload = await this.sendRequest('get_ledc_timer_config', { data })
+        console.log("获得LED定时器配置成功", payload)
+        return payload
+    }
+
+    async set_ledc_timer_config(data) {
+        let payload = await this.sendRequest('set_ledc_timer_config', { data })
+        console.log("设置LED定时器配置成功", payload)
+        return payload
+    }
+
+    async get_ledc_channel_config(data) {
+        let payload = await this.sendRequest('get_ledc_channel_config', { data })
+        console.log("获得LED通道配置成功", payload)
+        return payload
+    }
+
+    async set_ledc_channel_config(data) {
+        let payload = await this.sendRequest('set_ledc_channel_config', { data })
+        console.log("设置LED通道配置成功", payload)
+        return payload
     }
 
     async start_predict(data) {

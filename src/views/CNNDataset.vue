@@ -1,6 +1,6 @@
 <template>
   <!-- 表单容器 -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-base">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-base">
     <!-- 模型名称 -->
     <div class="flex flex-col">
       <label class="text-gray-700 mb-1">模型名称</label>
@@ -13,7 +13,7 @@
     </div>
 
     <!-- 导入 / 保存 -->
-    <div class="flex gap-5 py-4 px-5">
+    <div class="flex gap-5 py-4">
       <button
         class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-sm"
         @click="load_dataset"

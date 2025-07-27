@@ -17,6 +17,12 @@ export default {
         CNN_dataset: '数据集',
         CNN_manage: '管理',
         peripherals: '外设',
+        esptool: 'ESPTOOL',
+        wave_gen: '波形发生器（青春版）',
+        square_wave: '方波',
+        sin_wave: '正弦波',
+        any_wave: '任意波形',
+        logic_analyzer: '逻辑分析仪',
     },
     language: "设置语言",
     device: {

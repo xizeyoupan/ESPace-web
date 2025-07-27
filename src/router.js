@@ -13,6 +13,8 @@ import CNNDataset from './views/CNNDataset.vue'
 import CNNTrain from './views/CNNTrain.vue'
 import CNNManage from './views/CNNManage.vue'
 import StateView from './views/StateView.vue'
+import EsptoolView from './views/EsptoolView.vue'
+import SquareWaveView from './views/SquareWaveView.vue'
 
 const routes = [
     { path: '/', redirect: '/about' },
@@ -29,6 +31,8 @@ const routes = [
     { path: '/wifi-info', component: WiFiInfoView },
     { path: '/config', component: UserConfigView },
     { path: '/stat', component: StateView },
+    { path: '/esptool', component: EsptoolView },
+    { path: '/square-wave', component: SquareWaveView },
 ]
 
 const router = createRouter({

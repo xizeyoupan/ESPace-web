@@ -7,17 +7,19 @@ import LanguageSwitcher from './components/LanguageSwitcher.vue'
 import ConnectBtn from './components/ConnectBtn.vue'
 import PeripNavBtn from './components/PeripNavBtn.vue'
 import CNNNavBtn from './components/CNNNavBtn.vue'
+import WaveGenNavBtn from './components/WaveGenNavBtn.vue'
+import router from './router.js'
 
 const menuIsOpen = ref(false)
 const info_store = useInfoStore()
 info_store.device_info.dev_mode = await get("dev_mode")
 
-if (!info_store.wifi_info.isOnline) {
-    await connect_device()
-}
+// if (!info_store.wifi_info.isOnline && router.currentRoute.value.path !== '/esptool') {
+//     await connect_device()
+// }
 
 setInterval(() => {
-    if (!info_store.wifi_info.isOnline) {
+    if (!info_store.wifi_info.isOnline && router.currentRoute.value.path !== '/esptool') {
         connect_device()
     }
 }, 3000)
@@ -35,9 +37,17 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
       </div>
 
       <!-- Desktop Menu -->
-      <nav class="hidden md:flex space-x-8 items-center flex-wrap">
+      <nav class="hide-under-1800 show-at-1800-up space-x-8 items-center flex-wrap">
         <PeripNavBtn />
         <CNNNavBtn />
+        <WaveGenNavBtn />
+
+        <RouterLink
+          :class="mobile_nav_item_css"
+          to="/logic-analyzer"
+        >
+          {{ $t('nav.logic_analyzer') }}
+        </RouterLink>
 
         <RouterLink
           :class="desktop_nav_item_css"
@@ -75,13 +85,21 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
           {{ $t('nav.stat') }}
         </RouterLink>
 
+        <RouterLink
+          target="_blank"
+          :class="desktop_nav_item_css"
+          to="/esptool"
+        >
+          {{ $t('nav.esptool') }}
+        </RouterLink>
+
         <LanguageSwitcher />
 
         <ConnectBtn />
       </nav>
 
       <!-- Mobile Menu Button -->
-      <div class="md:hidden flex items-center">
+      <div class="show-under-1800 hide-at-1800-up items-center">
         <ConnectBtn />
 
         <button
@@ -131,9 +149,20 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
     >
       <div
         v-if="menuIsOpen"
-        class="md:hidden bg-white shadow-md"
+        class="show-under-1800 hide-at-1800-up bg-white shadow-md"
       >
-        <nav class="px-2 pt-2 pb-4 space-y-1">
+        <nav class="flex flex-col items-start px-2 pt-2 pb-4 space-y-1">
+          <PeripNavBtn />
+          <CNNNavBtn />
+          <WaveGenNavBtn />
+
+          <RouterLink
+            :class="mobile_nav_item_css"
+            to="/logic-analyzer"
+          >
+            {{ $t('nav.logic_analyzer') }}
+          </RouterLink>
+
           <RouterLink
             :class="mobile_nav_item_css"
             to="/wifi-info"
@@ -150,20 +179,12 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
 
           <RouterLink
             :class="mobile_nav_item_css"
-            to="/cnn"
-          >
-            {{ $t('nav.cnn') }}
-          </RouterLink>
-
-          <RouterLink
-            :class="mobile_nav_item_css"
             to="/about"
           >
             {{ $t('nav.about') }}
           </RouterLink>
 
           <RouterLink
-            v-if="info_store.device_info.dev_mode"
             :class="mobile_nav_item_css"
             to="/config"
           >
@@ -177,6 +198,15 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
           >
             {{ $t('nav.stat') }}
           </RouterLink>
+
+          <RouterLink
+            target="_blank"
+            :class="mobile_nav_item_css"
+            to="/esptool"
+          >
+            {{ $t('nav.esptool') }}
+          </RouterLink>
+
           <LanguageSwitcher />
         </nav>
       </div>
@@ -187,3 +217,23 @@ const desktop_nav_item_css = "text-gray-700 hover:text-blue-600"
     <RouterView />
   </main>
 </template>
+
+<style scoped>
+@media (min-width: 1800px) {
+  .hide-at-1800-up {
+    display: none !important;
+  }
+  .show-at-1800-up {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 1799px) {
+  .hide-under-1800 {
+    display: none !important;
+  }
+  .show-under-1800 {
+    display: flex !important;
+  }
+}
+</style>

@@ -9,9 +9,9 @@ import en from './locales/en'
 const loadLocaleMessages = async (locale) => {
     switch (locale) {
     case 'en':
-        return import('./locales/en.js').then(m => m.default)
+        return en
     case 'zh-CN':
-        return import('./locales/zh-CN.js').then(m => m.default)
+        return zhCN
     default:
         return {}
     }
@@ -24,6 +24,7 @@ const i18n = createI18n({
     fallbackLocale: 'en',
     messages: {
         'zh-CN': zhCN,
+        'en': en,
     }
 })
 

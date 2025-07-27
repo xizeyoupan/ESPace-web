@@ -130,6 +130,7 @@ const uploadModel = async () => {
 const fetchModelList = async () => {
     toast(t('toast.loading'), 'info')
     let data = await wsmgr.get_file_list()
+    data = data.data || ''
     toast(t('toast.load_success'), 'success')
 
     const list = data.split('\n')

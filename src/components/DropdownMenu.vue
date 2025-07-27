@@ -8,7 +8,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
     class="relative inline-block text-left"
   >
     <MenuButton
-      class="text-gray-700 inline-flex w-full justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-black/15 focus:outline-none"
+      class="text-gray-700 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-medium hover:bg-black/15 focus:outline-none"
     >
       <div class="text-base">
         <slot name="button" />
@@ -24,7 +24,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
       leave-to-class="opacity-0 scale-95"
     >
       <MenuItems
-        class="absolute mt-2 w-22 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+        class="z-10 absolute mt-2 w-22 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
       >
         <slot />
       </MenuItems>

@@ -92,7 +92,6 @@ import { useCNNStore } from '../store/CNNStore.js'
 
 const t = i18n.global.t
 
-
 const info_store = useInfoStore()
 const CNN_store = useCNNStore()
 
