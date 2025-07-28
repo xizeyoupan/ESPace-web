@@ -36,7 +36,7 @@
         </div>
 
         <!-- 速度 -->
-        <div class="flex flex-col w-40">
+        <!-- <div class="flex flex-col w-40">
           <label class="text-sm font-medium">速度</label>
           <select
             v-model.number="ledc_timer.speed_mode"
@@ -49,7 +49,7 @@
               HIGH
             </option>
           </select>
-        </div>
+        </div> -->
 
         <!-- 分辨率 -->
         <div class="flex flex-col w-40">
@@ -140,7 +140,8 @@
             type="number"
             class="input mt-1"
           >
-          <label class="text-sm font-medium">{{ (channel.duty / (2 ** channel.duty_resolution) * 100).toFixed(2) }}</label>
+          <label class="text-sm font-medium">{{ (channel.duty / (2 ** channel.duty_resolution) * 100).toFixed(2)
+          }}%</label>
         </div>
 
         <!-- hpoint -->
@@ -151,10 +152,12 @@
             type="number"
             class="input mt-1"
           >
+          <label class="text-sm font-medium">{{ (channel.hpoint / (2 ** channel.duty_resolution) * 100).toFixed(2)
+          }}%</label>
         </div>
 
         <!-- 速度 -->
-        <div class="flex flex-col w-40">
+        <!-- <div class="flex flex-col w-40">
           <label class="text-sm font-medium">速度</label>
           <select
             v-model.number="channel.speed_mode"
@@ -167,15 +170,23 @@
               HIGH
             </option>
           </select>
-        </div>
+        </div> -->
       </div>
 
-      <button
-        class="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-        @click="set_channel_config"
-      >
-        添加通道
-      </button>
+      <div class="flex gap-4">
+        <button
+          class="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          @click="set_channel_config"
+        >
+          配置通道
+        </button>
+        <button
+          class="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          @click="clear_channel_config"
+        >
+          重置通道
+        </button>
+      </div>
     </section>
   </div>
 </template>
@@ -183,6 +194,10 @@
 <script setup>
 import { reactive } from 'vue'
 import { wsmgr } from '../plugins/ws.js'
+import { i18n } from '../i18n.js'
+import { toast } from '../plugins/toast.js'
+
+const t = i18n.global.t
 
 const ledc_timer = reactive({
     index: -1,
@@ -202,24 +217,6 @@ const channel = reactive({
     duty_resolution: 0,
 })
 
-const get_timer_config = async () => {
-    const result = await wsmgr.get_ledc_timer_config({ index: ledc_timer.index })
-    console.log('LED控制器时钟配置结果:', result)
-    Object.assign(ledc_timer, result.data)
-}
-
-const set_timer_config = async () => {
-    const result = await wsmgr.set_ledc_timer_config(
-        {
-            index: ledc_timer.index,
-            speed_mode: ledc_timer.speed_mode,
-            freq_hz: ledc_timer.freq_hz,
-        })
-
-    console.log('LED控制器时钟配置设置结果:', result)
-    Object.assign(ledc_timer, result.data)
-}
-
 const update_duty_resolution = async () => {
     if (channel.index >= 0 && channel.timer_sel >= 0) {
         const result = await wsmgr.get_ledc_timer_config({ index: channel.timer_sel })
@@ -228,8 +225,49 @@ const update_duty_resolution = async () => {
     }
 }
 
+const get_timer_config = async () => {
+    const result = await wsmgr.get_ledc_timer_config({ index: ledc_timer.index })
+    console.log('LED控制器时钟配置结果:', result)
+    Object.assign(ledc_timer, result.data)
+}
+
+const set_timer_config = async () => {
+    if (ledc_timer.freq_hz <= 0) {
+        toast(t('toast.freq_invalid'), 'error')
+        return
+    }
+
+    if (ledc_timer.index < 0 || ledc_timer.index > 3) {
+        toast(t('toast.index_invalid'), 'error')
+        return
+    }
+
+    const result = await wsmgr.set_ledc_timer_config(
+        {
+            index: ledc_timer.index,
+            speed_mode: ledc_timer.speed_mode,
+            freq_hz: ledc_timer.freq_hz,
+        })
+
+    console.log('LED控制器时钟配置设置结果:', result)
+    if (result.error) {
+        toast(t('toast.error'), 'error')
+    } else {
+        Object.assign(ledc_timer, result.data)
+        await update_duty_resolution()
+        toast(t('toast.success'), 'success')
+    }
+
+}
+
 const get_channel_config = async () => {
     const result = await wsmgr.get_ledc_channel_config({ index: channel.index })
+    console.log('LED控制器通道配置结果:', result)
+    Object.assign(channel, result.data)
+}
+
+const clear_channel_config = async () => {
+    const result = await wsmgr.clear_ledc_channel_config({ index: channel.index })
     console.log('LED控制器通道配置结果:', result)
     Object.assign(channel, result.data)
 }
@@ -246,7 +284,13 @@ const set_channel_config = async () => {
         })
 
     console.log('LED控制器通道配置设置结果:', result)
-    Object.assign(channel, result.data)
+
+    if (result.error) {
+        toast(t('toast.error'), 'error')
+    } else {
+        Object.assign(channel, result.data)
+        toast(t('toast.success'), 'success')
+    }
 }
 </script>
 

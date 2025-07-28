@@ -73,9 +73,12 @@ export default {
         train_start: "开始训练模型",
         train_success: "模型训练完成",
         stop_sampling: "采样已停止",
-        new_dataset_id_is_null: "new_dataset_id_is_null",
         select_model_first: "请先在管理页面选择模型",
         select_dataset_first: "请先在数据集页面选择正确数据集",
+        success: "成功",
+        error: "错误",
+        freq_invalid: "频率无效，请输入大于0的值",
+        index_invalid: "序号无效，请选择正确的值",
     },
     about: {
         prefixURL: "prefixURL",

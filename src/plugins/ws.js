@@ -290,6 +290,12 @@ class WebSocketManager {
         return payload
     }
 
+    async clear_ledc_channel_config(data) {
+        let payload = await this.sendRequest('clear_ledc_channel_config', { data })
+        console.log("释放LED通道配置成功", payload)
+        return payload
+    }
+
     async set_ledc_channel_config(data) {
         let payload = await this.sendRequest('set_ledc_channel_config', { data })
         console.log("设置LED通道配置成功", payload)
