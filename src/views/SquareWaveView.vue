@@ -7,6 +7,7 @@
       <a
         href="https://docs.espressif.com/projects/esp-idf/zh_CN/v5.2.5/esp32/api-reference/peripherals/ledc.html"
         class="text-blue-600 hover:underline"
+        target="_blank"
       >
         https://docs.espressif.com/projects/esp-idf/zh_CN/v5.2.5/esp32/api-reference/peripherals/ledc.html
       </a>
@@ -184,7 +185,7 @@
           class="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
           @click="clear_channel_config"
         >
-          重置通道
+          停止通道
         </button>
       </div>
     </section>

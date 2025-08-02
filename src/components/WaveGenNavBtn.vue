@@ -26,7 +26,7 @@ const route = useRoute()
     <MenuItem v-slot="{ active }">
       <button
         :class="[active ? 'bg-black/15' : '', 'flex w-full items-center rounded-md px-2 py-2 text-sm']"
-        @click=""
+        @click="router.push('/cosine-wave')"
       >
         {{ $t('nav.sin_wave') }}
       </button>

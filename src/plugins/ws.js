@@ -317,6 +317,24 @@ class WebSocketManager {
         console.log("modify_model成功", payload)
     }
 
+    async get_dac_cosine_config(data) {
+        let payload = await this.sendRequest('get_dac_cosine_config', { data })
+        console.log("获取正弦通道配置成功", payload)
+        return payload
+    }
+
+    async clear_dac_cosine_channel(data) {
+        let payload = await this.sendRequest('clear_dac_cosine_channel', { data })
+        console.log("清除正弦通道配置成功", payload)
+        return payload
+    }
+
+    async set_dac_cosine_channel(data) {
+        let payload = await this.sendRequest('set_dac_cosine_channel', { data })
+        console.log("设置正弦通道配置成功", payload)
+        return payload
+    }
+
     _generateRequestId() {
         return `req_${Date.now()}_${this.requestCounter++}`
     }

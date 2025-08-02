@@ -200,7 +200,7 @@
     <div id="terminal" />
     <link
       rel="stylesheet"
-      href="node_modules/@xterm/xterm/css/xterm.css"
+      href="/xterm/xterm.css"
     >
   </div>
 </template>

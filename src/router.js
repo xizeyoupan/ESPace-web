@@ -15,6 +15,7 @@ import CNNManage from './views/CNNManage.vue'
 import StateView from './views/StateView.vue'
 import EsptoolView from './views/EsptoolView.vue'
 import SquareWaveView from './views/SquareWaveView.vue'
+import CosineWaveView from './views/CosineWaveView.vue'
 
 const routes = [
     { path: '/', redirect: '/about' },
@@ -33,6 +34,7 @@ const routes = [
     { path: '/stat', component: StateView },
     { path: '/esptool', component: EsptoolView },
     { path: '/square-wave', component: SquareWaveView },
+    { path: '/cosine-wave', component: CosineWaveView },
 ]
 
 const router = createRouter({
